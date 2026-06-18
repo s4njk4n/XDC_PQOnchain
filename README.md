@@ -1,4 +1,4 @@
-# XDC PQOnchain: Post-Quantum Onchain Communication (P-QOC)
+# XDC PQOnchain: Post-Quantum Onchain Communication
 
 [![GitHub stars](https://img.shields.io/github/stars/s4njk4n/XDC_PQOnchain?style=social)](https://github.com/s4njk4n/XDC_PQOnchain/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/s4njk4n/XDC_PQOnchain?style=social)](https://github.com/s4njk4n/XDC_PQOnchain/network/members)
