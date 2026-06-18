@@ -24,9 +24,6 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-        .section-title {
-            color: #c4b5fd;
-        }
         input, textarea {
             background: #1e1b4b;
             border: 1px solid #433c7e;
@@ -64,6 +61,7 @@
     </style>
 </head>
 <body class="bg-[#0f0e2e] text-[#e0d4ff]">
+
     <!-- Navigation -->
     <nav class="sticky top-0 z-50 bg-[#0f0e2e]/95 backdrop-blur-lg border-b border-white/10">
         <div class="max-w-5xl mx-auto px-6 py-5 flex justify-between items-center">
@@ -81,15 +79,24 @@
         </div>
     </nav>
 
-    <!-- Hero -->
-    <div class="max-w-4xl mx-auto px-6 pt-12 pb-8 text-center">
-        <h2 class="text-4xl md:text-5xl font-semibold tracking-tighter mb-4 font-display">
-            Post-Quantum Onchain Communication
-        </h2>
-        <p class="text-xl text-[#c4b5fd] max-w-2xl mx-auto">
-            Secure your messages on the XDC network with quantum-resistant encryption.<br>
-            All operations run client-side for maximum privacy.
-        </p>
+    <!-- Hero Section with Banner -->
+    <div class="max-w-5xl mx-auto px-6 pt-8">
+        <!-- Banner Image -->
+        <div class="mb-8 rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+            <img src="https://s4njk4n.github.io/XDC_PQOnchain/XDC_PQOnchain.jpg" 
+                 alt="XDC PQOnchain Banner" 
+                 class="w-full h-auto">
+        </div>
+
+        <div class="text-center pb-8">
+            <h2 class="text-4xl md:text-5xl font-semibold tracking-tighter mb-4 font-display">
+                Post-Quantum Onchain Communication
+            </h2>
+            <p class="text-xl text-[#c4b5fd] max-w-2xl mx-auto">
+                Secure your messages on the XDC network with quantum-resistant encryption.<br>
+                All operations run client-side for maximum privacy.
+            </p>
+        </div>
     </div>
 
     <!-- Main Content -->
@@ -238,6 +245,33 @@
                 <div id="decryptedMessage" class="output-box p-4 rounded-2xl min-h-[80px] text-sm"></div>
             </div>
         </div>
+
+        <!-- Testing Tips Section -->
+        <div class="card rounded-3xl p-8 bg-[#1a1840]">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 rounded-full bg-[#a5b4fc] flex items-center justify-center text-[#1e1b4b] font-bold">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3 class="text-2xl font-semibold">How to Test Properly</h3>
+            </div>
+
+            <div class="text-[#c4b5fd] space-y-4 text-sm">
+                <p>Because of MetaMask restrictions, you cannot easily test sending to yourself. Follow these steps for successful testing:</p>
+                
+                <ol class="list-decimal list-inside space-y-2 pl-1">
+                    <li>Use <strong>two different MetaMask wallets</strong> (or two different browser profiles).</li>
+                    <li>Generate the keypair on Wallet A.</li>
+                    <li>Send the encrypted message from Wallet B to an address in Wallet A (or vice versa).</li>
+                    <li>Make sure the recipient address is <strong>not</strong> saved in the sender’s address book.</li>
+                    <li>Use a small amount of XDC (e.g. 0.01) when testing.</li>
+                </ol>
+
+                <p class="pt-2 text-xs text-[#a5b4fc]">
+                    Tip: You can also ask a friend to test with you, or use a second device/browser.
+                </p>
+            </div>
+        </div>
+
     </div>
 
     <!-- Contact -->
@@ -278,7 +312,6 @@
                     element.innerHTML = originalText;
                 }, 1500);
             }).catch(() => {
-                // Fallback
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
@@ -288,7 +321,6 @@
             });
         }
 
-        // === Core Functions (kept mostly the same) ===
         let provider;
         const MLKEM_VARIANT = 'MlKem768';
         const CT_SIZE = 1088;
@@ -360,13 +392,11 @@
 
             let to = document.getElementById('toAddr').value.trim();
 
-            // Require a valid address
             if (!to) {
                 alert('Please enter a recipient address.\n\nNote: MetaMask currently does not allow sending to the null address.');
                 return;
             }
 
-            // Convert xdc... to 0x...
             if (to.toLowerCase().startsWith('xdc')) {
                 to = '0x' + to.slice(3);
             }
