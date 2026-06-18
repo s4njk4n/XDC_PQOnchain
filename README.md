@@ -18,7 +18,7 @@ XDC PQOnchain lets you generate post-quantum (PQ) encryption keypairs, encrypt m
 
 - **Key generation**: Creates an ML-KEM-768 encryption keypair (encryption public and private keys in hex).
 - **Encryption**: Uses the recipient's encryption public key to encapsulate a shared secret, then encrypts the message with AES-GCM using that secret. The ciphertext, IV, and encapsulated key are concatenated and sent as transaction data.
-- **Sending**: Connects to MetaMask on the XDC network (chain ID 50). Sends to a specified address or the null address (0x000...000) for data-only storage. Optional XDC amount to transfer.  
+- **Sending**: Connects to MetaMask on the XDC network (chain ID 50). Sends to a specified address. Optional XDC amount to transfer.  
   **Note**: Due to current MetaMask limitations, sending directly to the null address may not work reliably, so specifying a valid address is recommended. Additionally, MetaMask may restrict sending transactions with data to other addresses within the same wallet extension. The app retains support for null address functionality in anticipation of potential fixes or improvements.
 - **Decryption**: Fetches transaction data via RPC, extracts components, decapsulates the shared secret with your encryption private key, and decrypts the message.
 - All ops are client-side; no server involvement.
