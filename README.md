@@ -1,18 +1,18 @@
-# XDC Peacock: Post-Quantum Onchain Communication (P-QOC)
+# XDC PQOnchain: Post-Quantum Onchain Communication (P-QOC)
 
-[![GitHub stars](https://img.shields.io/github/stars/s4njk4n/XDC_Peacock?style=social)](https://github.com/s4njk4n/XDC_Peacock/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/s4njk4n/XDC_Peacock?style=social)](https://github.com/s4njk4n/XDC_Peacock/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/s4njk4n/XDC_Peacock)](https://github.com/s4njk4n/XDC_Peacock/issues)
+[![GitHub stars](https://img.shields.io/github/stars/s4njk4n/XDC_PQOnchain?style=social)](https://github.com/s4njk4n/XDC_PQOnchain/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/s4njk4n/XDC_PQOnchain?style=social)](https://github.com/s4njk4n/XDC_PQOnchain/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/s4njk4n/XDC_PQOnchain)](https://github.com/s4njk4n/XDC_PQOnchain/issues)
 
 Post-quantum encrypted messaging on the XDC blockchain. All encryption and decryption happens client-side. Uses ML-KEM-768 for key encapsulation and AES-256-GCM for message encryption. Messages are stored as transaction data onchain.
 
-Live demo: https://s4njk4n.github.io/XDC_Peacock/
+Live demo: https://s4njk4n.github.io/XDC_PQOnchain/
 
-<img src="XDC_Peacock.jpg" alt="XDC Peacock Banner" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+<img src="XDC_PQOnchain.jpg" alt="XDC PQOnchain Banner" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
 
 ## What it does
 
-XDC Peacock lets you generate post-quantum (PQ) encryption keypairs, encrypt messages using a recipient's PQ encryption public key, and send them as data in XDC transactions. You can also use it to decrypt your received messages from transaction hashes using your PQ encryption private key. It's designed for secure, onchain communication that's resistant to quantum attacks.
+XDC PQOnchain lets you generate post-quantum (PQ) encryption keypairs, encrypt messages using a recipient's PQ encryption public key, and send them as data in XDC transactions. You can also use it to decrypt your received messages from transaction hashes using your PQ encryption private key. It's designed for secure, onchain communication that's resistant to quantum attacks.
 
 ## How it works
 
@@ -52,7 +52,7 @@ Note: Use MetaMask with XDC network added. If not, it prompts to add it.
 
 ## Setup
 
-- Clone the repo: `git clone https://github.com/s4njk4n/XDC_Peacock.git`
+- Clone the repo: `git clone https://github.com/s4njk4n/XDC_PQOnchain.git`
 - Open `index.html` in a browser for local use.
 
 Dependencies: None for runtime (CDNs for Tailwind, Font Awesome, Ethers.js). ML-KEM loaded from esm.sh.
