@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XDC PQOnchain - Post-Quantum Onchain Communication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        .font-display {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        input, textarea {
+            background: #1e1b4b;
+            border: 1px solid #433c7e;
+            color: #e0d4ff;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus {
+            border-color: #a5b4fc;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #6366f1, #a5b4fc);
+            color: #1e1b4b;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        .output-box {
+            background: #1e1b4b;
+            border: 1px solid #433c7e;
+            font-family: ui-monospace, monospace;
+            font-size: 0.875rem;
+            word-break: break-all;
+        }
+        .nav-link {
+            transition: color 0.2s ease;
+        }
+        .nav-link:hover {
+            color: #a5b4fc;
+        }
+    </style>
+</head>
+<body class="bg-[#0f0e2e] text-[#e0d4ff]">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-[#0f0e2e]/95 backdrop-blur-lg border-b border-white/10">
+        <div class="max-w-5xl mx-auto px-6 py-5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-semibold tracking-tight font-display">XDC PQOnchain</h1>
+            </div>
+            <div class="flex items-center gap-6 text-sm">
+                <a href="https://github.com/s4njk4n/XDC_PQOnchain" target="_blank" 
+                   class="nav-link flex items-center gap-2 text-[#c4b5fd] hover:text-white">
+                    <i class="fas fa-book"></i>
+                    <span class="hidden sm:inline">Docs</span>
+                </a>
+                <a href="#contact" class="nav-link text-[#c4b5fd] hover:text-white">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="max-w-5xl mx-auto px-6 pt-8">
+        <div class="text-center pb-8">
+            <h2 class="text-4xl md:text-5xl font-semibold tracking-tighter mb-4 font-display">
+                Post-Quantum Onchain Communication
+            </h2>
+            <p class="text-xl text-[#c4b5fd] max-w-2xl mx-auto">
+                Secure your messages on the XDC network with quantum-resistant encryption.<br>
+                All operations run client-side for maximum privacy.
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-3xl mx-auto px-6 pb-16 space-y-8">
+
+        <!-- Step 1 -->
+        <div class="card rounded-3xl p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 rounded-full bg-[#6366f1] flex items-center justify-center text-white font-bold">1</div>
+                <h3 class="text-2xl font-semibold">Generate Post-Quantum Keypair</h3>
+            </div>
+            <p class="text-[#c4b5fd] mb-6">Generate an ML-KEM-768 keypair. All keys are created locally in your browser.</p>
+            
+            <button onclick="generateKeypair()" 
+                    class="btn-primary w-full py-4 rounded-2xl text-lg font-semibold">
+                Generate Keypair
+            </button>
+
+            <div class="mt-6 space-y-4">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-[#c4b5fd]">Public Key</span>
+                        <button onclick="copyToClipboard('publicKey')" class="text-xs px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">Copy</button>
+                    </div>
+                    <div id="publicKey" class="output-box p-4 rounded-2xl min-h-[60px] text-sm"></div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-[#c4b5fd]">Private Key</span>
+                        <button onclick="copyToClipboard('privateKey')" class="text-xs px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">Copy</button>
+                    </div>
+                    <div id="privateKey" class="output-box p-4 rounded-2xl min-h-[60px] text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="card rounded-3xl p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 rounded-full bg-[#6366f1] flex items-center justify-center text-white font-bold">2</div>
+                <h3 class="text-2xl font-semibold">Encrypt and Send Message</h3>
+            </div>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-[#c4b5fd]">
+                        Recipient Address <span class="text-red-400">*</span>
+                    </label>
+                    <input id="toAddr" type="text" placeholder="xdc... or 0x..." required
+                           class="w-full p-4 rounded-2xl text-sm">
+                </div>
+
+                <!-- Important Warning -->
+                <div class="bg-[#1e1b4b] border border-[#6366f1]/30 rounded-2xl p-4 text-sm">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-exclamation-triangle text-[#a5b4fc] mt-0.5"></i>
+                        <div class="text-[#c4b5fd]">
+                            <strong class="text-white">Important MetaMask Limitation:</strong><br>
+                            • The recipient address <strong>cannot</strong> be one you control in the same MetaMask wallet.
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-[#c4b5fd]">Recipient's ML-KEM Public Key</label>
+                    <textarea id="pubKey" rows="3" placeholder="Paste recipient's ML-KEM public key here"
+                              class="w-full p-4 rounded-2xl text-sm resize-y"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-[#c4b5fd]">Message</label>
+                    <textarea id="message" rows="4" placeholder="Enter your message"
+                              class="w-full p-4 rounded-2xl text-sm resize-y"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-[#c4b5fd]">Amount (XDC)</label>
+                        <input id="amount" type="number" value="0" step="any" class="w-full p-4 rounded-2xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-[#c4b5fd]">RPC Endpoint</label>
+                        <input id="rpc" value="https://rpc.ankr.com/xdc" class="w-full p-4 rounded-2xl text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Status -->
+            <div id="walletStatus" class="output-box mt-6 p-4 rounded-2xl text-sm hidden"></div>
+
+            <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                <button id="connectBtn" onclick="connectWallet()" 
+                        class="flex-1 bg-white/10 hover:bg-white/15 border border-white/20 py-4 rounded-2xl font-semibold transition-colors">
+                    Connect MetaMask
+                </button>
+                <button onclick="sendMessage()" 
+                        class="flex-1 btn-primary py-4 rounded-2xl font-semibold">
+                    Encrypt &amp; Send
+                </button>
+            </div>
+
+            <div id="txStatus" class="output-box mt-5 p-4 rounded-2xl text-sm hidden"></div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="card rounded-3xl p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 rounded-full bg-[#6366f1] flex items-center justify-center text-white font-bold">3</div>
+                <h3 class="text-2xl font-semibold">Decrypt Message</h3>
+            </div>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-[#c4b5fd]">Transaction Hash</label>
+                    <input id="txHashInput" type="text" placeholder="0x..." class="w-full p-4 rounded-2xl text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-[#c4b5fd]">Your ML-KEM Private Key</label>
+                    <textarea id="privKey" rows="3" placeholder="Paste your ML-KEM private key here"
+                              class="w-full p-4 rounded-2xl text-sm resize-y"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-[#c4b5fd]">RPC Endpoint</label>
+                    <input id="rpcDecrypt" value="https://rpc.ankr.com/xdc" class="w-full p-4 rounded-2xl text-sm">
+                </div>
+            </div>
+
+            <button onclick="decryptMessage()" 
+                    class="btn-primary w-full mt-8 py-4 rounded-2xl font-semibold">
+                Decrypt Message
+            </button>
+
+            <div class="mt-5">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-[#c4b5fd]">Decrypted Message</span>
+                    <button onclick="copyToClipboard('decryptedMessage')" 
+                            class="text-xs px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">Copy</button>
+                </div>
+                <div id="decryptedMessage" class="output-box p-4 rounded-2xl min-h-[80px] text-sm"></div>
+            </div>
+        </div>
+
+        <!-- Testing Tips -->
+        <div class="card rounded-3xl p-8 bg-[#1a1840]">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-8 h-8 rounded-full bg-[#a5b4fc] flex items-center justify-center text-[#1e1b4b] font-bold">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3 class="text-2xl font-semibold">How to Test Properly</h3>
+            </div>
+
+            <div class="text-[#c4b5fd] space-y-4 text-sm">
+                <p>Because of MetaMask restrictions, you cannot easily test sending to yourself. Follow these steps:</p>
+                
+                <ol class="list-decimal list-inside space-y-2 pl-1">
+                    <li>Use <strong>two different MetaMask wallets</strong> (or two different browser profiles).</li>
+                    <li>Send the encrypted message from Wallet A to an address in Wallet B (or vice versa).</li>
+                    <li>Use a small amount of XDC (e.g. 0.01) when testing.</li>
+                </ol>
+
+                <p class="pt-2 text-xs text-[#a5b4fc]">
+                    Tip: You can also ask a friend to test with you, or use a second device/browser.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Contact -->
+    <div id="contact" class="max-w-3xl mx-auto px-6 pb-16 text-center">
+        <h3 class="text-3xl font-semibold mb-8 tracking-tight">Need help?</h3>
+        <div class="flex flex-wrap justify-center gap-x-8 gap-y-4 text-sm">
+            <a href="https://t.me/s4njk4n" target="_blank" class="flex items-center gap-2 hover:text-white transition-colors">
+                <i class="fab fa-telegram text-xl"></i> Telegram
+            </a>
+            <a href="https://discord.com/users/852434672793288724" target="_blank" class="flex items-center gap-2 hover:text-white transition-colors">
+                <i class="fab fa-discord text-xl"></i> Discord
+            </a>
+            <a href="https://x.com/s4njk4n" target="_blank" class="flex items-center gap-2 hover:text-white transition-colors">
+                <i class="fab fa-x-twitter text-xl"></i> X
+            </a>
+            <a href="https://github.com/s4njk4n" target="_blank" class="flex items-center gap-2 hover:text-white transition-colors">
+                <i class="fab fa-github text-xl"></i> GitHub
+            </a>
+        </div>
+    </div>
+
+    <footer class="text-center py-8 text-xs text-[#6b6a8a]">
+        © 2025 XDC PQOnchain • Built by s4njk4n
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script>
+        // === Copy to Clipboard ===
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const text = element.innerText || element.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = element.innerHTML;
+                element.innerHTML = 'Copied!';
+                setTimeout(() => {
+                    element.innerHTML = originalText;
+                }, 1500);
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            });
+        }
+
+        let provider;
+        let connectedAccount = null;
+        const MLKEM_VARIANT = 'MlKem768';
+        const CT_SIZE = 1088;
+        const IV_SIZE = 12;
+
+        function arrayToHex(arr) {
+            return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function hexToArray(hex) {
+            return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+        }
+
+        function concatArrays(arrays) {
+            const totalLen = arrays.reduce((len, arr) => len + arr.length, 0);
+            const result = new Uint8Array(totalLen);
+            let offset = 0;
+            for (let arr of arrays) {
+                result.set(arr, offset);
+                offset += arr.length;
+            }
+            return result;
+        }
+
+        async function getMlKemClass() {
+            const { [MLKEM_VARIANT]: MlKemClass } = await import('https://esm.sh/mlkem');
+            return MlKemClass;
+        }
+
+        function updateWalletStatus() {
+            const statusEl = document.getElementById('walletStatus');
+            const connectBtn = document.getElementById('connectBtn');
+
+            if (connectedAccount) {
+                const shortAddress = connectedAccount.slice(0, 6) + '...' + connectedAccount.slice(-4);
+                statusEl.innerHTML = `✅ Connected: <span class="font-mono">${shortAddress}</span>`;
+                statusEl.classList.remove('hidden');
+                
+                connectBtn.innerHTML = 'Disconnect Wallet';
+                connectBtn.onclick = disconnectWallet;
+                connectBtn.classList.remove('bg-white/10', 'hover:bg-white/15', 'border-white/20');
+                connectBtn.classList.add('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300');
+            } else {
+                statusEl.classList.add('hidden');
+                connectBtn.innerHTML = 'Connect MetaMask';
+                connectBtn.onclick = connectWallet;
+                connectBtn.classList.remove('bg-red-500/20', 'hover:bg-red-500/30', 'border-red-500/30', 'text-red-300');
+                connectBtn.classList.add('bg-white/10', 'hover:bg-white/15', 'border-white/20');
+            }
+        }
+
+        async function connectWallet() {
+            if (!window.ethereum) return alert('MetaMask not detected');
+
+            try {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send('eth_requestAccounts', []);
+                
+                const accounts = await provider.listAccounts();
+                connectedAccount = accounts[0];
+
+                const network = await provider.getNetwork();
+                if (network.chainId !== 50) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x32',
+                            chainName: 'XDC Network',
+                            rpcUrls: ['https://rpc.ankr.com/xdc'],
+                            nativeCurrency: { name: 'XDC', symbol: 'XDC', decimals: 18 },
+                            blockExplorerUrls: ['https://xdcscan.com/']
+                        }]
+                    });
+                }
+
+                updateWalletStatus();
+            } catch (error) {
+                alert('Error connecting wallet: ' + error.message);
+            }
+        }
+
+        function disconnectWallet() {
+            provider = null;
+            connectedAccount = null;
+            updateWalletStatus();
+        }
+
+        async function sendMessage() {
+            if (!provider || !connectedAccount) {
+                return alert('Please connect your wallet first');
+            }
+
+            let to = document.getElementById('toAddr').value.trim();
+
+            if (!to) {
+                alert('Please enter a recipient address.');
+                return;
+            }
+
+            if (to.toLowerCase().startsWith('xdc')) {
+                to = '0x' + to.slice(3);
+            }
+
+            const pubKeyHex = document.getElementById('pubKey').value.trim();
+            const msg = document.getElementById('message').value;
+            const amount = document.getElementById('amount').value || '0';
+
+            if (!pubKeyHex) {
+                return alert('Please paste the recipient\'s public key.');
+            }
+
+            try {
+                const MlKemClass = await getMlKemClass();
+                const sender = new MlKemClass();
+                const [ct, ss] = await sender.encap(hexToArray(pubKeyHex));
+
+                const key = await crypto.subtle.importKey('raw', ss, 'AES-GCM', true, ['encrypt']);
+                const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE));
+                const encryptedMsg = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv }, 
+                    key, 
+                    new TextEncoder().encode(msg)
+                );
+
+                const fullData = concatArrays([ct, iv, new Uint8Array(encryptedMsg)]);
+                const dataHex = '0x' + arrayToHex(fullData);
+
+                const signer = provider.getSigner();
+                const tx = {
+                    to,
+                    value: ethers.utils.parseEther(amount.toString()),
+                    data: dataHex
+                };
+
+                const resp = await signer.sendTransaction(tx);
+                const statusEl = document.getElementById('txStatus');
+                statusEl.classList.remove('hidden');
+                statusEl.innerText = `Transaction sent: ${resp.hash}\nWaiting for confirmation...`;
+
+                await resp.wait();
+                statusEl.innerText = `Transaction confirmed!\nHash: ${resp.hash}`;
+            } catch (error) {
+                alert('Error sending message: ' + error.message);
+            }
+        }
+
+        async function decryptMessage() {
+            try {
+                const txHash = document.getElementById('txHashInput').value.trim();
+                const privKeyHex = document.getElementById('privKey').value.trim();
+                const rpc = document.getElementById('rpcDecrypt').value;
+
+                const queryProvider = new ethers.providers.JsonRpcProvider(rpc);
+                const tx = await queryProvider.getTransaction(txHash);
+                if (!tx || !tx.data) throw new Error('Invalid transaction');
+
+                const dataBytes = hexToArray(tx.data.slice(2));
+                const ct = dataBytes.slice(0, CT_SIZE);
+                const iv = dataBytes.slice(CT_SIZE, CT_SIZE + IV_SIZE);
+                const encMsg = dataBytes.slice(CT_SIZE + IV_SIZE);
+
+                const MlKemClass = await getMlKemClass();
+                const recipient = new MlKemClass();
+                const ss = await recipient.decap(ct, hexToArray(privKeyHex));
+
+                const key = await crypto.subtle.importKey('raw', ss, 'AES-GCM', true, ['decrypt']);
+                const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encMsg);
+                const msg = new TextDecoder().decode(decrypted);
+
+                document.getElementById('decryptedMessage').innerText = msg;
+            } catch (error) {
+                alert('Error decrypting message: ' + error.message);
+            }
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            // Optional: Auto-check if already connected
+            if (window.ethereum) {
+                window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+                    if (accounts.length > 0) {
+                        provider = new ethers.providers.Web3Provider(window.ethereum);
+                        connectedAccount = accounts[0];
+                        updateWalletStatus();
+                    }
+                });
+            }
+        };
+    </script>
+</body>
+</html>
