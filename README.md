@@ -32,10 +32,10 @@ Built with HTML/JS, Ethers.js for blockchain interaction, mlkem library for ML-K
    - Copy the encryption public and private keys (hex). Store the encryption private key securely offline.
 
 2. **Encrypt and send message**:
-   - (Optional) Enter "To Address" (xdc... or 0x...). Leave blank for null address.
-   - Paste recipient's encryption public key (hex).
+   - Enter "To Address" (xdc... or 0x...).
+   - Paste recipient's ML-KEM public key (hex).
    - Enter message.
-   - (Optional) Set XDC amount (default 0).
+   - Set XDC amount (default 0).
    - Set RPC endpoint (default: https://rpc.ankr.com/xdc).
    - Click "Connect MetaMask" (switch to XDC network if needed).
    - Click "Send Message". Confirm in MetaMask.
@@ -43,7 +43,7 @@ Built with HTML/JS, Ethers.js for blockchain interaction, mlkem library for ML-K
 
 3. **Decrypt message**:
    - Enter transaction hash.
-   - Paste your encryption private key (hex).
+   - Paste your ML-KEM private key (hex).
    - Set RPC endpoint.
    - Click "Decrypt Message".
    - View decrypted message.
