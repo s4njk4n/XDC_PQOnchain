@@ -95,7 +95,7 @@
     <!-- Main Content -->
     <div class="max-w-3xl mx-auto px-6 pb-16 space-y-8">
 
-        <!-- Step 1 -->
+        <!-- Step 1: Generate Keypair -->
         <div class="card rounded-3xl p-8">
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-8 h-8 rounded-full bg-[#6366f1] flex items-center justify-center text-white font-bold">1</div>
@@ -126,7 +126,7 @@
             </div>
         </div>
 
-        <!-- Step 2 -->
+        <!-- Step 2: Encrypt & Send -->
         <div class="card rounded-3xl p-8">
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-8 h-8 rounded-full bg-[#6366f1] flex items-center justify-center text-white font-bold">2</div>
@@ -194,7 +194,7 @@
             <div id="txStatus" class="output-box mt-5 p-4 rounded-2xl text-sm hidden"></div>
         </div>
 
-        <!-- Step 3 -->
+        <!-- Step 3: Decrypt -->
         <div class="card rounded-3xl p-8">
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-8 h-8 rounded-full bg-[#6366f1] flex items-center justify-center text-white font-bold">3</div>
@@ -335,6 +335,20 @@
         async function getMlKemClass() {
             const { [MLKEM_VARIANT]: MlKemClass } = await import('https://esm.sh/mlkem');
             return MlKemClass;
+        }
+
+        async function generateKeypair() {
+            try {
+                const MlKemClass = await getMlKemClass();
+                const instance = new MlKemClass();
+                const [pk, sk] = await instance.generateKeyPair();
+
+                document.getElementById('publicKey').innerText = arrayToHex(pk);
+                document.getElementById('privateKey').innerText = arrayToHex(sk);
+            } catch (error) {
+                console.error("Keypair error:", error);
+                alert('Error generating keypair: ' + error.message);
+            }
         }
 
         function updateWalletStatus() {
@@ -485,7 +499,6 @@
 
         // Initialize on load
         window.onload = function() {
-            // Optional: Auto-check if already connected
             if (window.ethereum) {
                 window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
                     if (accounts.length > 0) {
