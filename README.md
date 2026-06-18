@@ -50,12 +50,6 @@ Built with HTML/JS, Ethers.js for blockchain interaction, mlkem library for ML-K
 
 Note: Use MetaMask with XDC network added. If not, it prompts to add it.
 
-## Setup
-
-- Clone the repo: `git clone https://github.com/s4njk4n/XDC_PQOnchain.git`
-- Open `index.html` in a browser for local use.
-
-Dependencies: None for runtime (CDNs for Tailwind, Font Awesome, Ethers.js). ML-KEM loaded from esm.sh.
 
 ## License
 
