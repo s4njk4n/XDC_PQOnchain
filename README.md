@@ -36,7 +36,7 @@ Built with HTML/JS, Ethers.js for blockchain interaction, mlkem library for ML-K
    - Paste recipient's ML-KEM public key (hex).
    - Enter message.
    - Set XDC amount (default 0).
-   - Set RPC endpoint (default: https://rpc.ankr.com/xdc).
+   - Set RPC endpoint (default: https://rpc.plugin.global/xdcmainnet).
    - Click "Connect MetaMask" (switch to XDC network if needed).
    - Click "Send Message". Confirm in MetaMask.
    - Copy the transaction hash from the status.
