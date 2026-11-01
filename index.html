@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XDC PQOnchain: post-quantum encrypted messages on XDC | XDC Outpost</title>
+  <meta name="description" content="Send post-quantum encrypted messages on the XDC Network. ML-KEM-768 (NIST FIPS 203) with AES-256-GCM, running entirely in your browser.">
+  <link rel="canonical" href="https://xdcoutpost.xyz/XDC_PQOnchain/">
+  <meta name="theme-color" content="#1E1A4A">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://xdcoutpost.xyz/XDC_PQOnchain/">
+  <meta property="og:title" content="XDC PQOnchain">
+  <meta property="og:description" content="Post-quantum encrypted messages on the XDC Network, created and read entirely in your browser.">
+  <meta property="og:image" content="https://xdcoutpost.xyz/XDC_PQOnchain/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@s4njk4n">
+
+  <link rel="preload" href="/assets/fonts/bricolage.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
+
+  <style>
+    @font-face {
+      font-family: "Bricolage";
+      src: url("/assets/fonts/bricolage.woff2") format("woff2-variations");
+      font-weight: 200 800; font-stretch: 75% 100%; font-display: swap;
+    }
+    @font-face {
+      font-family: "Instrument Sans";
+      src: url("/assets/fonts/instrument-sans.woff2") format("woff2-variations");
+      font-weight: 400 700; font-stretch: 75% 100%; font-display: swap;
+    }
+
+    /* ---- Shared XDC Outpost tokens ---- */
+    :root {
+      --night: #1E1A4A;
+      --deep: #19163F;
+      --dusk: #2B2566;
+      --line: #443D84;
+      --ink: #F2EDFF;
+      --mist: #C3B8EA;
+      --signal: #8FDCFF;
+      --flare: #FF9EBB;
+      --ok: #6EE7B7;
+      --display: "Bricolage", "Avenir Next", "Segoe UI", sans-serif;
+      --body: "Instrument Sans", "Helvetica Neue", "Segoe UI", sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      --wrap: 72rem;
+      --gutter: clamp(1.25rem, 4vw, 2.5rem);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    body {
+      margin: 0; background: var(--night); color: var(--ink);
+      font-family: var(--body); font-size: 1.0625rem; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--signal); text-underline-offset: 0.2em; }
+    a:hover { color: var(--ink); }
+    :focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; border-radius: 4px; }
+    [hidden] { display: none !important; }
+    .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter); }
+    .nb { white-space: nowrap; }
+    .skip { position: absolute; left: 1rem; top: -3rem; background: var(--signal); color: var(--night); padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; z-index: 20; }
+    .skip:focus { top: 1rem; }
+
+    /* Header (matches xdcoutpost.xyz) */
+    .site-header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgb(30 26 74 / 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .site-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 4rem; gap: 1rem; }
+    .crumbs { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+    .brand {
+      display: flex; align-items: center; gap: 0.6rem; white-space: nowrap;
+      color: var(--ink); text-decoration: none;
+      font-family: var(--display); font-weight: 700; font-size: 1.2rem; letter-spacing: -0.01em;
+    }
+    .brand svg { width: 1.6rem; height: 1.6rem; flex: none; }
+    .crumbs .sep { color: var(--line); font-size: 1.3rem; }
+    .crumbs .here { color: var(--mist); font-weight: 600; white-space: nowrap; }
+    .site-nav { display: flex; gap: clamp(1rem, 3vw, 2rem); }
+    .site-nav a { color: var(--mist); text-decoration: none; font-size: 0.95rem; font-weight: 500; white-space: nowrap; padding: 0.75rem 0; }
+    .site-nav a:hover { color: var(--ink); }
+    @media (max-width: 720px) { .site-nav .wide { display: none; } }
+    @media (max-width: 420px) {
+      .crumbs .sep, .crumbs .here { display: none; }
+    }
+
+    /* Hero */
+    .hero { padding: clamp(3rem, 7vw, 5rem) 0 clamp(3rem, 6vw, 4.5rem); }
+    .hero-grid { display: grid; gap: 2.5rem 4rem; }
+    @media (min-width: 1024px) { .hero-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: start; } }
+    .hero h1 {
+      font-family: var(--display); font-weight: 750; font-stretch: 82%;
+      font-size: clamp(2.5rem, 6vw, 4.75rem); line-height: 0.98; letter-spacing: -0.028em;
+      margin: 0 0 1.5rem; max-width: 13ch; text-wrap: balance;
+    }
+    .hero .lede { font-size: clamp(1.1rem, 2vw, 1.25rem); color: var(--mist); margin: 0 0 1.75rem; max-width: 34em; }
+    .facts { list-style: none; margin: 0 0 2rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .kind {
+      display: inline-block; font-weight: 600; font-size: 0.8rem;
+      padding: 0.2rem 0.7rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap;
+    }
+    .kind-pq { color: var(--night); background: var(--signal); border-color: var(--signal); }
+    .kind-web { color: var(--signal); }
+    .kind-quiet { color: var(--mist); }
+    .hero .actions { margin: 0; }
+
+    .panel { background: var(--dusk); border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.25rem, 3vw, 2rem); }
+    .panel h2 { font-family: var(--display); font-weight: 700; font-stretch: 90%; font-size: 1.35rem; line-height: 1.2; margin: 0 0 0.4rem; }
+    .panel > p { color: var(--mist); font-size: 0.95rem; margin: 0 0 1.25rem; }
+    .payload-bar { display: flex; height: 2.75rem; border-radius: 8px; overflow: hidden; font-size: 0.8rem; font-weight: 600; }
+    .payload-bar span { display: flex; align-items: center; padding: 0 0.75rem; white-space: nowrap; overflow: hidden; color: var(--night); }
+    .seg-kem { flex: 5.2; background: var(--signal); }
+    .seg-iv  { flex: 0.9; background: #C9BCF5; justify-content: center; padding: 0 0.25rem !important; }
+    .seg-msg { flex: 2.6; background: #FFC7D7; }
+    .payload-key { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.75rem; margin: 0.9rem 0 0; font-size: 0.875rem; color: var(--mist); }
+    .payload-key dt { color: var(--ink); font-weight: 600; white-space: nowrap; }
+    .payload-key dd { margin: 0; }
+
+    /* Steps: same two-column pattern as the tool catalogue */
+    .steps { background: var(--deep); padding: clamp(1rem, 3vw, 2rem) 0 clamp(3rem, 7vw, 5rem); }
+    .group { display: grid; gap: 1.5rem 3rem; grid-template-columns: 1fr; padding: 2.5rem 0; border-top: 1px solid var(--line); }
+    .group:first-child { border-top: 0; }
+    @media (min-width: 900px) {
+      .group { grid-template-columns: 17rem minmax(0, 1fr); }
+      .group-head { position: sticky; top: 6rem; align-self: start; }
+    }
+    .step-no {
+      display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%;
+      border: 1.5px solid var(--signal); color: var(--signal);
+      font-family: var(--display); font-weight: 700; font-size: 1rem; margin-bottom: 0.75rem;
+    }
+    .group-head h2 { font-family: var(--display); font-weight: 700; font-stretch: 90%; font-size: 1.6rem; line-height: 1.15; letter-spacing: -0.015em; margin: 0 0 0.5rem; }
+    .group-head p { color: var(--mist); margin: 0; font-size: 0.975rem; }
+    .group-body { display: grid; gap: 1.25rem; max-width: 46rem; }
+
+    /* Forms */
+    .field { display: grid; gap: 0.4rem; }
+    .field label, .field .label { font-weight: 600; font-size: 0.95rem; }
+    .field .hint { color: var(--mist); font-size: 0.875rem; margin: 0; }
+    .row-2 { display: grid; gap: 1.25rem; }
+    @media (min-width: 640px) { .row-2 { grid-template-columns: 1fr 1fr; } }
+    input, textarea {
+      width: 100%; font: inherit; font-size: 1rem; color: var(--ink);
+      background: var(--night); border: 1px solid var(--line); border-radius: 8px;
+      padding: 0.75rem 0.9rem; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    textarea { resize: vertical; min-height: 6rem; }
+    textarea.mono, input.mono { font-family: var(--mono); font-size: 0.85rem; }
+    input::placeholder, textarea::placeholder { color: #8E84BE; }
+    input:focus, textarea:focus { outline: none; border-color: var(--signal); box-shadow: 0 0 0 3px rgb(143 220 255 / 0.2); }
+    input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--flare); }
+
+    details.settings { border: 1px solid var(--line); border-radius: 8px; padding: 0 0.9rem; }
+    details.settings summary { cursor: pointer; padding: 0.75rem 0; color: var(--mist); font-weight: 600; font-size: 0.95rem; }
+    details.settings[open] { padding-bottom: 0.9rem; }
+
+    /* Buttons (match main site) */
+    .actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.7rem 1.2rem; border-radius: 8px; border: 1px solid transparent;
+      font: inherit; font-weight: 600; font-size: 0.975rem; text-decoration: none; white-space: nowrap; cursor: pointer;
+      transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .btn-primary { background: var(--signal); color: var(--night); }
+    .btn-primary:hover { background: var(--ink); color: var(--night); }
+    .btn-ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+    .btn-ghost:hover { border-color: var(--signal); color: var(--ink); }
+    .btn-small { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
+    .btn[disabled] { opacity: 0.55; cursor: progress; }
+    .btn svg { width: 1rem; height: 1rem; fill: currentColor; flex: none; }
+
+    /* Key / output boxes */
+    .out { display: grid; gap: 0.4rem; }
+    .out-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+    .out-head .label { font-weight: 600; font-size: 0.95rem; }
+    .out-head .actions { gap: 0.4rem; }
+    .box {
+      background: var(--night); border: 1px solid var(--line); border-radius: 8px;
+      padding: 0.75rem 0.9rem; min-height: 3.25rem;
+      font-family: var(--mono); font-size: 0.8rem; line-height: 1.5; word-break: break-all;
+      max-height: 9rem; overflow-y: auto; color: var(--ink);
+    }
+    .box:empty::before { content: attr(data-empty); color: #8E84BE; font-family: var(--body); font-size: 0.9rem; }
+    .box.masked:not(:empty) { filter: blur(5px); user-select: none; }
+    .box.message { font-family: var(--body); font-size: 1rem; word-break: normal; white-space: pre-wrap; max-height: none; min-height: 5rem; }
+
+    /* Notices */
+    .notice { margin: 0; padding: 0.8rem 1rem; border-radius: 8px; border: 1px solid var(--line); background: var(--dusk); font-size: 0.95rem; }
+    .notice strong { font-weight: 600; }
+    .notice[data-tone="error"] { border-color: var(--flare); background: rgb(255 158 187 / 0.08); }
+    .notice[data-tone="ok"] { border-color: var(--ok); background: rgb(110 231 183 / 0.07); }
+    .notice[data-tone="warn"] { border-left: 3px solid var(--flare); }
+    .notice .hash { font-family: var(--mono); font-size: 0.8rem; word-break: break-all; }
+    .notice .actions { margin-top: 0.6rem; }
+
+    .wallet { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 8px; }
+    .wallet-state { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; }
+    .wallet-state .dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--line); flex: none; }
+    .wallet-state.on .dot { background: var(--ok); box-shadow: 0 0 0 4px rgb(110 231 183 / 0.18); }
+    .wallet-state code { font-family: var(--mono); font-size: 0.85rem; }
+
+    /* Things to know */
+    .know { padding: clamp(3rem, 7vw, 5rem) 0; }
+    .know h2 { font-family: var(--display); font-weight: 700; font-stretch: 90%; font-size: clamp(2rem, 4vw, 2.75rem); letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 2rem; }
+    .know-grid { display: grid; gap: 1.5rem 3rem; }
+    @media (min-width: 800px) { .know-grid { grid-template-columns: 1fr 1fr; } }
+    .know h3 { font-family: var(--display); font-weight: 650; font-size: 1.2rem; margin: 0 0 0.35rem; }
+    .know p, .know li { color: var(--mist); margin: 0; }
+    .know ol { margin: 0.5rem 0 0; padding-left: 1.25rem; display: grid; gap: 0.3rem; }
+
+    /* Contact + footer (match main site) */
+    .contact { padding: clamp(3rem, 7vw, 5rem) 0; border-top: 1px solid var(--line); }
+    .contact .wrap { display: grid; gap: 2rem 4rem; }
+    @media (min-width: 900px) { .contact .wrap { grid-template-columns: 1fr 1fr; align-items: start; } }
+    .contact h2 { font-family: var(--display); font-weight: 700; font-stretch: 90%; font-size: clamp(2rem, 4vw, 2.75rem); letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 1rem; }
+    .contact p { color: var(--mist); margin: 0; max-width: 30em; }
+    .channels { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+    .channels a { display: flex; align-items: center; gap: 1rem; padding: 1rem 0.25rem; border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+    .channels a:hover { color: var(--signal); }
+    .channels svg { width: 1.4rem; height: 1.4rem; fill: currentColor; flex: none; }
+    .channels .name { font-weight: 600; min-width: 5.5rem; }
+    .channels .handle { color: var(--mist); }
+    .site-footer { border-top: 1px solid var(--line); padding: 2rem 0; color: var(--mist); font-size: 0.9rem; }
+    .site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+    .site-footer p { margin: 0; }
+    .site-footer a { display: inline-block; padding: 0.6rem 0; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#keys">Skip to the tool</a>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-beacon" viewBox="0 0 32 32">
+      <path d="M11 29 L16 11 L21 29 M12.6 23 H19.4 M13.8 18 H18.2" fill="none" stroke="#C3B8EA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="16" cy="7.5" r="3" fill="#FF9EBB"/>
+      <path d="M9.5 4.5 A9 9 0 0 0 9.5 10.5 M22.5 4.5 A9 9 0 0 1 22.5 10.5" fill="none" stroke="#FF9EBB" stroke-width="1.75" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol>
+    <symbol id="i-telegram" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></symbol>
+    <symbol id="i-discord" viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z"/></symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="wrap">
+      <div class="crumbs">
+        <a class="brand" href="/"><svg aria-hidden="true"><use href="#i-beacon"/></svg>XDC Outpost</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span class="here">PQOnchain</span>
+      </div>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/#tools">All tools</a>
+        <a class="wide" href="#know">How it works</a>
+        <a class="wide" href="https://github.com/s4njk4n/XDC_PQOnchain" target="_blank" rel="noopener">Source code</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="title">
+      <div class="wrap hero-grid">
+        <div>
+          <h1 id="title">Post-quantum encrypted messages on XDC</h1>
+          <p class="lede">Create a keypair, send a message only the recipient can read, and decrypt messages sent to you. Everything runs in your browser. Your keys and messages never touch a server.</p>
+          <ul class="facts" aria-label="Key facts">
+            <li><span class="kind kind-pq"><span class="nb">ML-KEM-768</span> (NIST FIPS 203)</span></li>
+            <li><span class="kind kind-web">AES-256-GCM</span></li>
+            <li><span class="kind kind-quiet">XDC mainnet</span></li>
+            <li><span class="kind kind-quiet">Open source</span></li>
+          </ul>
+          <div class="actions">
+            <a class="btn btn-primary" href="#keys">Get started</a>
+            <a class="btn btn-ghost" href="#read">I have a message to read</a>
+          </div>
+        </div>
+
+        <aside class="panel" aria-labelledby="payload-title">
+          <h2 id="payload-title">What goes on chain</h2>
+          <p>Each message is stored in the data field of an ordinary XDC transaction.</p>
+          <div class="payload-bar" role="img" aria-label="Transaction data: 1,088-byte ML-KEM-768 ciphertext, 12-byte IV, then the AES-256-GCM encrypted message">
+            <span class="seg-kem">ML-KEM-768</span><span class="seg-iv">IV</span><span class="seg-msg">Message</span>
+          </div>
+          <dl class="payload-key">
+            <dt>ML-KEM-768</dt><dd>1,088-byte encapsulated key, opened only by the recipient’s private key</dd>
+            <dt>IV</dt><dd>12 random bytes</dd>
+            <dt>Message</dt><dd>Your text, encrypted with AES-256-GCM</dd>
+          </dl>
+        </aside>
+      </div>
+    </section>
+
+    <div class="steps">
+      <div class="wrap">
+
+        <!-- Step 1 -->
+        <section class="group" id="keys" aria-labelledby="keys-title">
+          <div class="group-head">
+            <span class="step-no" aria-hidden="true">1</span>
+            <h2 id="keys-title">Create your keys</h2>
+            <p>Do this once if you want to receive messages. Share your public key with anyone who wants to message you. You don’t need keys of your own just to send.</p>
+          </div>
+          <div class="group-body">
+            <div class="actions">
+              <button type="button" class="btn btn-primary" id="genBtn" onclick="generateKeypair()">Generate keypair</button>
+            </div>
+            <p class="notice" id="keysStatus" role="status" hidden></p>
+
+            <div class="out">
+              <div class="out-head">
+                <span class="label" id="pk-label">Public key <span class="kind kind-quiet">Share this</span></span>
+                <div class="actions">
+                  <button type="button" class="btn btn-ghost btn-small" onclick="copyToClipboard('publicKey', this)">Copy</button>
+                </div>
+              </div>
+              <div id="publicKey" class="box" aria-labelledby="pk-label" data-empty="Your public key will appear here"></div>
+            </div>
+
+            <div class="out">
+              <div class="out-head">
+                <span class="label" id="sk-label">Private key <span class="kind kind-quiet" style="color:var(--flare)">Never share</span></span>
+                <div class="actions">
+                  <button type="button" class="btn btn-ghost btn-small" id="revealBtn" onclick="toggleReveal()" aria-pressed="false">Show</button>
+                  <button type="button" class="btn btn-ghost btn-small" onclick="copyToClipboard('privateKey', this)">Copy</button>
+                </div>
+              </div>
+              <div id="privateKey" class="box masked" aria-labelledby="sk-label" data-empty="Your private key will appear here"></div>
+            </div>
+
+            <div class="actions" id="keyExtras" hidden>
+              <button type="button" class="btn btn-ghost" onclick="downloadKeys()">Download both keys</button>
+            </div>
+
+            <p class="notice" data-tone="warn"><strong>Save your private key somewhere safe and offline.</strong> Anyone who has it can read every message sent to your public key. If you lose it, those messages can’t be recovered. Nothing is saved by this page.</p>
+          </div>
+        </section>
+
+        <!-- Step 2 -->
+        <section class="group" id="send" aria-labelledby="send-title">
+          <div class="group-head">
+            <span class="step-no" aria-hidden="true">2</span>
+            <h2 id="send-title">Send a message</h2>
+            <p>Your message is encrypted with the recipient’s public key, then sent as an XDC transaction from MetaMask.</p>
+          </div>
+          <div class="group-body">
+            <div class="wallet">
+              <div class="wallet-state" id="walletState"><span class="dot" aria-hidden="true"></span><span id="walletStatus">MetaMask not connected</span></div>
+              <button type="button" class="btn btn-ghost btn-small" id="connectBtn" onclick="connectWallet()">Connect MetaMask</button>
+            </div>
+
+            <div class="field">
+              <label for="toAddr">Recipient address</label>
+              <input id="toAddr" class="mono" type="text" placeholder="xdc… or 0x…" autocomplete="off" spellcheck="false" required>
+              <p class="hint">Must be an address in a different wallet from the one you’re sending with. MetaMask blocks data transactions between addresses in the same wallet.</p>
+            </div>
+
+            <div class="field">
+              <label for="pubKey">Recipient’s public key</label>
+              <textarea id="pubKey" class="mono" rows="3" placeholder="Paste the public key they shared with you" spellcheck="false"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="message">Message</label>
+              <textarea id="message" rows="4" placeholder="Write your message"></textarea>
+              <p class="hint" id="msgHint">Longer messages cost more gas.</p>
+            </div>
+
+            <div class="row-2">
+              <div class="field">
+                <label for="amount">XDC to send with it <span style="color:var(--mist);font-weight:400">(optional)</span></label>
+                <input id="amount" type="number" value="0" min="0" step="any" inputmode="decimal">
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="button" class="btn btn-primary" id="sendBtn" onclick="sendMessage()">Encrypt and send</button>
+            </div>
+            <div class="notice" id="txStatus" role="status" hidden></div>
+          </div>
+        </section>
+
+        <!-- Step 3 -->
+        <section class="group" id="read" aria-labelledby="read-title">
+          <div class="group-head">
+            <span class="step-no" aria-hidden="true">3</span>
+            <h2 id="read-title">Read a message</h2>
+            <p>Paste the transaction hash the sender gave you and your private key. No wallet connection needed.</p>
+          </div>
+          <div class="group-body">
+            <div class="field">
+              <label for="txHashInput">Transaction hash</label>
+              <input id="txHashInput" class="mono" type="text" placeholder="0x…" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+              <label for="privKey">Your private key</label>
+              <textarea id="privKey" class="mono" rows="3" placeholder="Paste your private key" spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <details class="settings">
+              <summary>Network settings</summary>
+              <div class="field">
+                <label for="rpcDecrypt">RPC endpoint</label>
+                <input id="rpcDecrypt" class="mono" value="https://rpc.plugin.global/xdcmainnet" spellcheck="false">
+                <p class="hint">Used only to look up the transaction. Any XDC mainnet RPC works.</p>
+              </div>
+            </details>
+            <div class="actions">
+              <button type="button" class="btn btn-primary" id="decryptBtn" onclick="decryptMessage()">Decrypt message</button>
+            </div>
+            <p class="notice" id="readStatus" role="status" hidden></p>
+            <div class="out">
+              <div class="out-head">
+                <span class="label" id="dm-label">Decrypted message</span>
+                <div class="actions">
+                  <button type="button" class="btn btn-ghost btn-small" onclick="copyToClipboard('decryptedMessage', this)">Copy</button>
+                </div>
+              </div>
+              <div id="decryptedMessage" class="box message" aria-labelledby="dm-label" aria-live="polite" data-empty="The message will appear here"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="know" id="know" aria-labelledby="know-title">
+      <div class="wrap">
+        <h2 id="know-title">Things to know</h2>
+        <div class="know-grid">
+          <div>
+            <h3>Only the message is private</h3>
+            <p>The message text is encrypted. The sender, recipient, amount and time are public on chain, like any XDC transaction.</p>
+          </div>
+          <div>
+            <h3>Why post-quantum?</h3>
+            <p>Data on a public chain stays there forever. “Harvest now, decrypt later” attacks collect encrypted data today to break once quantum computers mature. ML-KEM is designed to resist them.</p>
+          </div>
+          <div>
+            <h3>The recipient needs the transaction hash</h3>
+            <p>After you send, copy the hash and pass it to the recipient. They paste it into step 3 with their private key.</p>
+          </div>
+          <div>
+            <h3>Testing it yourself</h3>
+            <p>MetaMask won’t send these transactions between addresses in the same wallet, so:</p>
+            <ol>
+              <li>Use two different wallets, or two browser profiles.</li>
+              <li>Send from wallet A to an address in wallet B.</li>
+              <li>Send a small amount, such as 0.01 XDC, or none at all.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact" aria-labelledby="contact-title">
+      <div class="wrap">
+        <div>
+          <h2 id="contact-title">Need help?</h2>
+          <p>Questions about PQOnchain, a bug to report, or an idea? Message me on whichever platform suits you.</p>
+        </div>
+        <ul class="channels">
+          <li><a href="https://t.me/s4njk4n" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-telegram"/></svg><span class="name">Telegram</span><span class="handle">@s4njk4n</span></a></li>
+          <li><a href="https://discord.com/users/852434672793288724" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-discord"/></svg><span class="name">Discord</span><span class="handle">@s4njk4n</span></a></li>
+          <li><a href="https://x.com/s4njk4n" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-x"/></svg><span class="name">X</span><span class="handle">@s4njk4n</span></a></li>
+          <li><a href="https://github.com/s4njk4n/XDC_PQOnchain" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-github"/></svg><span class="name">GitHub</span><span class="handle">XDC_PQOnchain</span></a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>© <span id="year">2026</span> XDC Outpost, by <a href="https://github.com/s4njk4n?tab=repositories" target="_blank" rel="noopener">s4njk4n</a></p>
+      <p><a href="/">More XDC tools</a></p>
+    </div>
+  </footer>
+
+  <!-- Libraries are self-hosted and version-pinned so the code that handles your keys can't change underneath you. -->
+  <script src="vendor/ethers-5.7.2.umd.min.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // ===== Constants (message format is unchanged from earlier versions) =====
+    const CT_SIZE = 1088;          // ML-KEM-768 ciphertext
+    const IV_SIZE = 12;            // AES-GCM IV
+    const TAG_SIZE = 16;           // AES-GCM auth tag
+    const PK_BYTES = 1184;         // ML-KEM-768 public key
+    const SK_BYTES = 2400;         // ML-KEM-768 private key
+    const XDC_CHAIN_ID = 50;
+    const XDC_CHAIN_HEX = '0x32';
+    const EXPLORER_TX = 'https://xdcscan.com/tx/';
+
+    let provider = null;
+    let connectedAccount = null;
+
+    // ===== Helpers =====
+    const $ = id => document.getElementById(id);
+
+    function arrayToHex(arr) {
+      return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+    }
+    function hexToArray(hex) {
+      return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+    }
+    function concatArrays(arrays) {
+      const totalLen = arrays.reduce((len, arr) => len + arr.length, 0);
+      const result = new Uint8Array(totalLen);
+      let offset = 0;
+      for (const arr of arrays) { result.set(arr, offset); offset += arr.length; }
+      return result;
+    }
+    // Accepts pasted hex with or without 0x and stray whitespace; returns clean hex or null.
+    function cleanHex(value, expectedBytes) {
+      let hex = (value || '').replace(/\s+/g, '');
+      if (/^0x/i.test(hex)) hex = hex.slice(2);
+      if (!hex || hex.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(hex)) return null;
+      if (expectedBytes && hex.length !== expectedBytes * 2) return null;
+      return hex.toLowerCase();
+    }
+    function toXdc(addr) { return addr ? 'xdc' + addr.slice(2) : addr; }
+    function shortAddr(addr) { const x = toXdc(addr); return x.slice(0, 7) + '…' + x.slice(-4); }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    function setStatus(id, tone, html) {
+      const el = $(id);
+      if (!html) { el.hidden = true; el.innerHTML = ''; return; }
+      el.dataset.tone = tone;
+      el.innerHTML = html;
+      el.hidden = false;
+    }
+    function markInvalid(id, invalid) {
+      const el = $(id);
+      if (invalid) { el.setAttribute('aria-invalid', 'true'); el.focus(); }
+      else el.removeAttribute('aria-invalid');
+    }
+    function busy(btnId, isBusy, label) {
+      const b = $(btnId);
+      if (isBusy) { b.dataset.label = b.textContent; b.textContent = label; b.disabled = true; }
+      else { b.textContent = b.dataset.label || b.textContent; b.disabled = false; }
+    }
+    function friendlyError(error) {
+      if (!error) return 'Something went wrong.';
+      if (error.code === 4001 || error.code === 'ACTION_REJECTED') return 'You cancelled the request in MetaMask.';
+      if (error.code === 'INSUFFICIENT_FUNDS') return 'This wallet doesn’t have enough XDC to cover the amount and gas.';
+      return error.reason || (error.data && error.data.message) || error.message || String(error);
+    }
+
+    // Copy with feedback on the button, never on the content itself.
+    function copyToClipboard(elementId, button) {
+      const el = $(elementId);
+      if (!el) return;
+      const text = (el.value !== undefined ? el.value : el.textContent).trim();
+      if (!text) return;
+      const done = () => {
+        if (!button) return;
+        const original = button.dataset.original || button.textContent;
+        button.dataset.original = original;
+        button.textContent = 'Copied';
+        clearTimeout(button._t);
+        button._t = setTimeout(() => { button.textContent = original; }, 1500);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done).catch(() => legacyCopy(text, done));
+      } else legacyCopy(text, done);
+    }
+    function legacyCopy(text, done) {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } finally { document.body.removeChild(ta); }
+    }
+
+    async function getMlKemClass() {
+      const { MlKem768 } = await import('./vendor/mlkem-2.7.0.min.js');
+      return MlKem768;
+    }
+
+    // ===== Step 1: keys =====
+    async function generateKeypair() {
+      if ($('publicKey').textContent && !confirm('Replace your current keys? Make sure you’ve saved the private key first. Messages sent to the old public key can only be read with the old private key.')) return;
+      busy('genBtn', true, 'Generating…');
+      setStatus('keysStatus');
+      try {
+        const MlKemClass = await getMlKemClass();
+        const instance = new MlKemClass();
+        const [pk, sk] = await instance.generateKeyPair();
+        $('publicKey').textContent = arrayToHex(pk);
+        $('privateKey').textContent = arrayToHex(sk);
+        $('keyExtras').hidden = false;
+        $('genBtn').dataset.label = 'Generate new keypair';
+        setStatus('keysStatus', 'ok', 'Keys created. Save your private key now: download both keys or copy them somewhere safe.');
+      } catch (error) {
+        console.error('Keypair error:', error);
+        setStatus('keysStatus', 'error', '<strong>Couldn’t create keys.</strong> ' + escapeHtml(friendlyError(error)));
+      } finally {
+        busy('genBtn', false);
+      }
+    }
+
+    function toggleReveal() {
+      const box = $('privateKey'), btn = $('revealBtn');
+      const hidden = box.classList.toggle('masked');
+      btn.textContent = hidden ? 'Show' : 'Hide';
+      btn.setAttribute('aria-pressed', String(!hidden));
+    }
+
+    function downloadKeys() {
+      const pk = $('publicKey').textContent, sk = $('privateKey').textContent;
+      if (!pk || !sk) return;
+      const text = [
+        'XDC PQOnchain keys (ML-KEM-768)',
+        'Created: ' + new Date().toISOString(),
+        '',
+        'PUBLIC KEY (share this with people who want to message you):',
+        pk,
+        '',
+        'PRIVATE KEY (keep secret, store offline. Anyone with it can read your messages):',
+        sk,
+        ''
+      ].join('\n');
+      const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = 'xdc-pqonchain-keys.txt';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // ===== Step 2: wallet + send =====
+    function updateWalletStatus() {
+      const state = $('walletState'), btn = $('connectBtn');
+      if (connectedAccount) {
+        $('walletStatus').innerHTML = 'Connected: <code>' + escapeHtml(shortAddr(connectedAccount)) + '</code>';
+        state.classList.add('on');
+        btn.textContent = 'Disconnect';
+        btn.onclick = disconnectWallet;
+      } else {
+        $('walletStatus').textContent = 'MetaMask not connected';
+        state.classList.remove('on');
+        btn.textContent = 'Connect MetaMask';
+        btn.onclick = connectWallet;
+      }
+    }
+
+    // Switch to XDC mainnet, adding it to MetaMask if needed.
+    async function ensureXdcNetwork() {
+      const current = await window.ethereum.request({ method: 'eth_chainId' });
+      if (parseInt(current, 16) === XDC_CHAIN_ID) return;
+      try {
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: XDC_CHAIN_HEX }] });
+      } catch (err) {
+        if (err.code !== 4902 && !(err.data && err.data.originalError && err.data.originalError.code === 4902)) throw err;
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: XDC_CHAIN_HEX,
+            chainName: 'XDC Network',
+            rpcUrls: ['https://rpc.plugin.global/xdcmainnet'],
+            nativeCurrency: { name: 'XDC', symbol: 'XDC', decimals: 18 },
+            blockExplorerUrls: ['https://xdcscan.com/']
+          }]
+        });
+      }
+      const after = await window.ethereum.request({ method: 'eth_chainId' });
+      if (parseInt(after, 16) !== XDC_CHAIN_ID) throw new Error('Please switch MetaMask to the XDC Network and try again.');
+    }
+
+    async function connectWallet() {
+      if (!window.ethereum) {
+        setStatus('txStatus', 'error', '<strong>MetaMask not found.</strong> Install the <a href="https://metamask.io/download/" target="_blank" rel="noopener">MetaMask extension</a>, or open this page in the MetaMask mobile app’s browser.');
+        return;
+      }
+      try {
+        provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+        const accounts = await provider.send('eth_requestAccounts', []);
+        connectedAccount = accounts[0] || null;
+        await ensureXdcNetwork();
+        setStatus('txStatus');
+        updateWalletStatus();
+      } catch (error) {
+        updateWalletStatus();
+        setStatus('txStatus', 'error', '<strong>Couldn’t connect.</strong> ' + escapeHtml(friendlyError(error)));
+      }
+    }
+
+    function disconnectWallet() {
+      provider = null;
+      connectedAccount = null;
+      updateWalletStatus();
+    }
+
+    async function sendMessage() {
+      ['toAddr', 'pubKey', 'message', 'amount'].forEach(id => markInvalid(id, false));
+      setStatus('txStatus');
+
+      let to = $('toAddr').value.trim();
+      if (/^xdc/i.test(to)) to = '0x' + to.slice(3);
+      if (!to || !ethers.utils.isAddress(to)) {
+        markInvalid('toAddr', true);
+        return setStatus('txStatus', 'error', 'Enter a valid recipient address, starting with xdc or 0x.');
+      }
+      const pubKeyHex = cleanHex($('pubKey').value, PK_BYTES);
+      if (!pubKeyHex) {
+        markInvalid('pubKey', true);
+        return setStatus('txStatus', 'error', 'That doesn’t look like a PQOnchain public key. It should be ' + (PK_BYTES * 2).toLocaleString() + ' hex characters. Check you copied all of it, and that it’s the public key, not the private one.');
+      }
+      const msg = $('message').value;
+      if (!msg.trim()) {
+        markInvalid('message', true);
+        return setStatus('txStatus', 'error', 'Write a message to send.');
+      }
+      const amount = $('amount').value.trim() || '0';
+      let value;
+      try { value = ethers.utils.parseEther(amount); if (value.isNegative()) throw 0; }
+      catch (_) { markInvalid('amount', true); return setStatus('txStatus', 'error', 'Enter an XDC amount of 0 or more.'); }
+
+      if (!window.ethereum) return connectWallet();
+      if (!provider || !connectedAccount) {
+        await connectWallet();
+        if (!connectedAccount) return;
+      }
+
+      busy('sendBtn', true, 'Check MetaMask…');
+      try {
+        await ensureXdcNetwork();
+        provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+
+        const MlKemClass = await getMlKemClass();
+        const sender = new MlKemClass();
+        const [ct, ss] = await sender.encap(hexToArray(pubKeyHex));
+        const key = await crypto.subtle.importKey('raw', ss, 'AES-GCM', false, ['encrypt']);
+        const iv = crypto.getRandomValues(new Uint8Array(IV_SIZE));
+        const encryptedMsg = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(msg));
+        const dataHex = '0x' + arrayToHex(concatArrays([ct, iv, new Uint8Array(encryptedMsg)]));
+
+        const resp = await provider.getSigner().sendTransaction({ to, value, data: dataHex });
+        const hash = escapeHtml(resp.hash);
+        const hashActions = '<div class="actions"><button type="button" class="btn btn-ghost btn-small" onclick="copyText(\'' + hash + '\', this)">Copy hash</button><a class="btn btn-ghost btn-small" href="' + EXPLORER_TX + hash + '" target="_blank" rel="noopener">View on XDCScan</a></div>';
+        busy('sendBtn', true, 'Confirming…');
+        setStatus('txStatus', 'info', '<strong>Sent. Waiting for confirmation…</strong><br><span class="hash">' + hash + '</span>' + hashActions);
+        await resp.wait();
+        setStatus('txStatus', 'ok', '<strong>Message confirmed on chain.</strong> Send this transaction hash to the recipient so they can read it:<br><span class="hash">' + hash + '</span>' + hashActions);
+      } catch (error) {
+        console.error('Send error:', error);
+        setStatus('txStatus', 'error', '<strong>Message not sent.</strong> ' + escapeHtml(friendlyError(error)));
+      } finally {
+        busy('sendBtn', false);
+      }
+    }
+
+    function copyText(text, button) {
+      const fake = 'copy-tmp';
+      const el = document.createElement('input'); el.id = fake; el.value = text; el.hidden = true;
+      document.body.appendChild(el);
+      copyToClipboard(fake, button);
+      el.remove();
+    }
+
+    // ===== Step 3: read =====
+    async function decryptMessage() {
+      ['txHashInput', 'privKey'].forEach(id => markInvalid(id, false));
+      setStatus('readStatus');
+      $('decryptedMessage').textContent = '';
+
+      const txHash = $('txHashInput').value.trim();
+      if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) {
+        markInvalid('txHashInput', true);
+        return setStatus('readStatus', 'error', 'Enter a transaction hash: 0x followed by 64 hex characters.');
+      }
+      const privKeyHex = cleanHex($('privKey').value, SK_BYTES);
+      if (!privKeyHex) {
+        markInvalid('privKey', true);
+        return setStatus('readStatus', 'error', 'That doesn’t look like a PQOnchain private key. It should be ' + (SK_BYTES * 2).toLocaleString() + ' hex characters. Check you pasted the private key, not the public one.');
+      }
+      const rpc = $('rpcDecrypt').value.trim();
+
+      busy('decryptBtn', true, 'Decrypting…');
+      try {
+        let tx;
+        try {
+          const queryProvider = new ethers.providers.JsonRpcProvider(rpc);
+          tx = await queryProvider.getTransaction(txHash);
+        } catch (e) {
+          throw new Error('Couldn’t reach the RPC endpoint. Check the address under Network settings, or try another XDC RPC.');
+        }
+        if (!tx) throw new Error('No transaction with that hash was found on this network.');
+        const dataHex = (tx.data || '0x').slice(2);
+        if (dataHex.length < (CT_SIZE + IV_SIZE + TAG_SIZE) * 2) throw new Error('That transaction doesn’t contain a PQOnchain message.');
+
+        const dataBytes = hexToArray(dataHex);
+        const ct = dataBytes.slice(0, CT_SIZE);
+        const iv = dataBytes.slice(CT_SIZE, CT_SIZE + IV_SIZE);
+        const encMsg = dataBytes.slice(CT_SIZE + IV_SIZE);
+
+        const MlKemClass = await getMlKemClass();
+        const recipient = new MlKemClass();
+        const ss = await recipient.decap(ct, hexToArray(privKeyHex));
+        const key = await crypto.subtle.importKey('raw', ss, 'AES-GCM', false, ['decrypt']);
+        let decrypted;
+        try {
+          decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encMsg);
+        } catch (_) {
+          throw new Error('This message wasn’t encrypted for this private key. Check you’re using the private key that matches the public key you shared.');
+        }
+        $('decryptedMessage').textContent = new TextDecoder().decode(decrypted);
+        setStatus('readStatus', 'ok', 'Decrypted. Sent from <code>' + escapeHtml(toXdc(tx.from)) + '</code>.');
+      } catch (error) {
+        console.error('Decrypt error:', error);
+        setStatus('readStatus', 'error', '<strong>Couldn’t decrypt.</strong> ' + escapeHtml(error.message || String(error)));
+      } finally {
+        busy('decryptBtn', false);
+      }
+    }
+
+    // ===== Init =====
+    window.addEventListener('load', () => {
+      if (!window.ethereum) return;
+      window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
+        if (accounts.length > 0) {
+          provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+          connectedAccount = accounts[0];
+          updateWalletStatus();
+        }
+      }).catch(() => {});
+      if (window.ethereum.on) {
+        window.ethereum.on('accountsChanged', accounts => {
+          connectedAccount = accounts && accounts.length ? accounts[0] : null;
+          if (!connectedAccount) provider = null;
+          updateWalletStatus();
+        });
+      }
+    });
+  </script>
+</body>
+</html>
