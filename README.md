@@ -6,7 +6,7 @@
 
 Post-quantum encrypted messaging on the XDC blockchain. All encryption and decryption happens client-side. Uses ML-KEM-768 for key encapsulation and AES-256-GCM for message encryption. Messages are stored as transaction data onchain.
 
-Live app: https://xdcoutpost.xyz/XDC_PQOnchain/
+Live app: https://xdcoutpost.xyz/XDC_PQOnchain/?utm_source=github
 
 <img src="XDC_PQOnchain.jpg" alt="XDC PQOnchain Banner" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
 

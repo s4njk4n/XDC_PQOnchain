@@ -232,6 +232,7 @@
     .site-footer p { margin: 0; }
     .site-footer a { display: inline-block; padding: 0.6rem 0; }
   </style>
+  <script src="/assets/analytics.js"></script>
 </head>
 <body>
   <a class="skip" href="#keys">Skip to the tool</a>
@@ -258,7 +259,7 @@
       <nav class="site-nav" aria-label="Main">
         <a href="/#tools">All tools</a>
         <a class="wide" href="#know">How it works</a>
-        <a class="wide" href="https://github.com/s4njk4n/XDC_PQOnchain" target="_blank" rel="noopener">Source code</a>
+        <a class="wide" href="https://github.com/s4njk4n/XDC_PQOnchain" target="_blank" rel="noopener" data-goatcounter-click="github/XDC_PQOnchain">Source code</a>
       </nav>
     </div>
   </header>
@@ -463,10 +464,10 @@
           <p>Questions about PQOnchain, a bug to report, or an idea? Message me on whichever platform suits you.</p>
         </div>
         <ul class="channels">
-          <li><a href="https://t.me/s4njk4n" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-telegram"/></svg><span class="name">Telegram</span><span class="handle">@s4njk4n</span></a></li>
-          <li><a href="https://discord.com/users/852434672793288724" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-discord"/></svg><span class="name">Discord</span><span class="handle">@s4njk4n</span></a></li>
-          <li><a href="https://x.com/s4njk4n" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-x"/></svg><span class="name">X</span><span class="handle">@s4njk4n</span></a></li>
-          <li><a href="https://github.com/s4njk4n/XDC_PQOnchain" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-github"/></svg><span class="name">GitHub</span><span class="handle">XDC_PQOnchain</span></a></li>
+          <li><a href="https://t.me/s4njk4n" target="_blank" rel="noopener" data-goatcounter-click="contact/telegram"><svg aria-hidden="true"><use href="#i-telegram"/></svg><span class="name">Telegram</span><span class="handle">@s4njk4n</span></a></li>
+          <li><a href="https://discord.com/users/852434672793288724" target="_blank" rel="noopener" data-goatcounter-click="contact/discord"><svg aria-hidden="true"><use href="#i-discord"/></svg><span class="name">Discord</span><span class="handle">@s4njk4n</span></a></li>
+          <li><a href="https://x.com/s4njk4n" target="_blank" rel="noopener" data-goatcounter-click="contact/x"><svg aria-hidden="true"><use href="#i-x"/></svg><span class="name">X</span><span class="handle">@s4njk4n</span></a></li>
+          <li><a href="https://github.com/s4njk4n/XDC_PQOnchain" target="_blank" rel="noopener" data-goatcounter-click="github/XDC_PQOnchain"><svg aria-hidden="true"><use href="#i-github"/></svg><span class="name">GitHub</span><span class="handle">XDC_PQOnchain</span></a></li>
         </ul>
       </div>
     </section>
@@ -474,7 +475,7 @@
 
   <footer class="site-footer">
     <div class="wrap">
-      <p>© <span id="year">2026</span> XDC Outpost, by <a href="https://github.com/s4njk4n?tab=repositories" target="_blank" rel="noopener">s4njk4n</a></p>
+      <p>© <span id="year">2026</span> XDC Outpost, by <a href="https://github.com/s4njk4n?tab=repositories" target="_blank" rel="noopener" data-goatcounter-click="github/profile">s4njk4n</a></p>
       <p><a href="/">More XDC tools</a></p>
     </div>
   </footer>
@@ -592,6 +593,7 @@
         $('privateKey').textContent = arrayToHex(sk);
         $('keyExtras').hidden = false;
         $('genBtn').dataset.label = 'Generate new keypair';
+        xdcTrack('pqonchain/keys-created');
         setStatus('keysStatus', 'ok', 'Keys created. Save your private key now: download both keys or copy them somewhere safe.');
       } catch (error) {
         console.error('Keypair error:', error);
@@ -624,6 +626,7 @@
       ].join('\n');
       const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
       const a = document.createElement('a');
+      xdcTrack('pqonchain/keys-downloaded');
       a.href = url; a.download = 'xdc-pqonchain-keys.txt';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -742,6 +745,7 @@
         busy('sendBtn', true, 'Confirming…');
         setStatus('txStatus', 'info', '<strong>Sent. Waiting for confirmation…</strong><br><span class="hash">' + hash + '</span>' + hashActions);
         await resp.wait();
+        xdcTrack('pqonchain/message-sent');
         setStatus('txStatus', 'ok', '<strong>Message confirmed on chain.</strong> Send this transaction hash to the recipient so they can read it:<br><span class="hash">' + hash + '</span>' + hashActions);
       } catch (error) {
         console.error('Send error:', error);
@@ -806,6 +810,7 @@
           throw new Error('This message wasn’t encrypted for this private key. Check you’re using the private key that matches the public key you shared.');
         }
         $('decryptedMessage').textContent = new TextDecoder().decode(decrypted);
+        xdcTrack('pqonchain/message-decrypted');
         setStatus('readStatus', 'ok', 'Decrypted. Sent from <code>' + escapeHtml(toXdc(tx.from)) + '</code>.');
       } catch (error) {
         console.error('Decrypt error:', error);
