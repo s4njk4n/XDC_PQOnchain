@@ -1,56 +1,66 @@
-# XDC PQOnchain: Post-Quantum Onchain Communication
+# XDC PQOnchain: post-quantum encrypted messages on XDC
 
 [![GitHub stars](https://img.shields.io/github/stars/s4njk4n/XDC_PQOnchain?style=social)](https://github.com/s4njk4n/XDC_PQOnchain/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/s4njk4n/XDC_PQOnchain?style=social)](https://github.com/s4njk4n/XDC_PQOnchain/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/s4njk4n/XDC_PQOnchain)](https://github.com/s4njk4n/XDC_PQOnchain/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Post-quantum encrypted messaging on the XDC blockchain. All encryption and decryption happens client-side. Uses ML-KEM-768 for key encapsulation and AES-256-GCM for message encryption. Messages are stored as transaction data onchain.
+Send messages on the XDC Network that only the recipient can read, encrypted with **ML-KEM-768** (the post-quantum key-encapsulation standard NIST published as FIPS 203) and **AES-256-GCM**. Everything runs in your browser: keys and messages never touch a server.
 
-Live app: https://xdcoutpost.xyz/XDC_PQOnchain/?utm_source=github
+**[Open PQOnchain →](https://xdcoutpost.xyz/XDC_PQOnchain/?utm_source=github)**
 
-<img src="XDC_PQOnchain.jpg" alt="XDC PQOnchain Banner" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
+Part of [XDC Outpost](https://xdcoutpost.xyz/?utm_source=github-pqonchain) · ⭐ Star the repo if it helps you.
 
-## What it does
+<img src="XDC_PQOnchain.jpg" alt="XDC PQOnchain banner" style="max-width: 100%; height: auto; display: block; margin: 0 auto;">
 
-XDC PQOnchain lets you generate post-quantum (PQ) encryption keypairs, encrypt messages using a recipient's PQ encryption public key, and send them as data in XDC transactions. You can also use it to decrypt your received messages from transaction hashes using your PQ encryption private key. It's designed for secure, onchain communication that's resistant to quantum attacks.
+## Why post-quantum?
 
-## How it works
+Data written to a public blockchain stays there forever. "Harvest now, decrypt later" attacks collect encrypted data today, to break once quantum computers mature. ML-KEM is designed to resist them.
 
-- **Key generation**: Creates an ML-KEM-768 encryption keypair (encryption public and private keys in hex).
-- **Encryption**: Uses the recipient's encryption public key to encapsulate a shared secret, then encrypts the message with AES-GCM using that secret. The ciphertext, IV, and encapsulated key are concatenated and sent as transaction data.
-- **Sending**: Connects to MetaMask on the XDC network (chain ID 50). Sends to a specified address. Optional XDC amount to transfer.  
-  **Note**: MetaMask restricts sending transactions containing data to other addresses within the same wallet extension.
-- **Decryption**: Fetches transaction data via RPC, extracts components, decapsulates the shared secret with your encryption private key, and decrypts the message.
-- All ops are client-side; no server involvement.
+## How to use it
 
-Built with HTML/JS, Ethers.js for blockchain interaction, mlkem library for ML-KEM, and Web Crypto API for AES.
+### 1. Create your keys (to receive messages)
+- Click **Generate keypair**. The keys are created in your browser.
+- **Share your public key** with anyone who wants to message you.
+- **Save your private key** offline: click **Download both keys**, or copy it. It's hidden until you click **Show**. Anyone with it can read your messages, and if you lose it they can't be recovered.
 
-## How to use
+You don't need keys of your own just to send.
 
-1. **Generate keypair**:
-   - Click "Generate Keypair".
-   - Copy the encryption public and private keys (hex). Store the encryption private key securely offline.
+### 2. Send a message
+- **Connect MetaMask.** The page switches it to the XDC Network, adding the network if needed.
+- Enter the **recipient address** (xdc… or 0x…) and paste their **public key**.
+- Write your message. Optionally, send some XDC with it.
+- Click **Encrypt and send** and confirm in MetaMask.
+- When it's confirmed, **copy the transaction hash and send it to the recipient**. They need it to read the message. There's also a link to view it on XDCScan.
 
-2. **Encrypt and send message**:
-   - Enter "To Address" (xdc... or 0x...).
-   - Paste recipient's ML-KEM public key (hex).
-   - Enter message.
-   - Set XDC amount (default 0).
-   - Set RPC endpoint (default: https://rpc.plugin.global/xdcmainnet).
-   - Click "Connect MetaMask" (switch to XDC network if needed).
-   - Click "Send Message". Confirm in MetaMask.
-   - Copy the transaction hash from the status.
+MetaMask won't send data transactions between two addresses in the same wallet, so the recipient must be in a different wallet. To test it yourself, use two wallets or two browser profiles.
 
-3. **Decrypt message**:
-   - Enter transaction hash.
-   - Paste your ML-KEM private key (hex).
-   - Set RPC endpoint.
-   - Click "Decrypt Message".
-   - View decrypted message.
+### 3. Read a message
+- Paste the **transaction hash** and **your private key**.
+- Click **Decrypt message**. No wallet connection is needed.
 
-Note: Use MetaMask with XDC network added. If not, it prompts to add it.
+## What goes on chain
 
+Each message is stored in the data field of an ordinary XDC transaction, in this order:
 
-## License
+| Part | Size | What it is |
+|---|---|---|
+| ML-KEM-768 ciphertext | 1,088 bytes | The encapsulated key, which only the recipient's private key can open |
+| IV | 12 bytes | Random value for AES-GCM |
+| Encrypted message | your message + 16 bytes | Your text, encrypted with AES-256-GCM |
 
-MIT
+**Only the message is private.** The sender, recipient, amount and time are public, like any XDC transaction.
+
+## How it's built
+
+Plain HTML and JavaScript with:
+- [mlkem](https://github.com/dajiaji/crystals-kyber-js) 2.7.0 for ML-KEM-768
+- [ethers.js](https://github.com/ethers-io/ethers.js) 5.7.2 for the wallet and RPC
+- the browser's built-in Web Crypto API for AES-GCM
+
+Both libraries are **stored in this repo, at fixed versions** (`vendor/`), rather than loaded from a CDN. The code that handles your keys can't change without a visible commit here.
+
+## Contact
+
+Questions, bugs or ideas: open a [GitHub issue](https://github.com/s4njk4n/XDC_PQOnchain/issues), or message me on [Telegram](https://t.me/s4njk4n) or [X](https://x.com/s4njk4n).
+
+[MIT License](LICENSE). Provided as-is, without warranty. Experimental software: don't use it for anything where a lost key or a bug would be costly.
