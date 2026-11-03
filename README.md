@@ -41,7 +41,7 @@ You don't need message keys of your own just to send.
 - Enter the **recipient wallet address** (xdc… or 0x…) and paste their **message public key**.
 - Write your message. Optionally, send some XDC with it.
 - Click **Encrypt and send** and confirm in MetaMask.
-- When it's confirmed, **copy the transaction hash and send it to the recipient**. They need it to read the message. There's also a link to view it on XDCScan. Every hash you send stays listed under **Sent this session** until you reload the page.
+- When it's confirmed, **copy the transaction hash and send it to the recipient**. They need it to read the message. There's also a link to view it on XDCScan. When you start another message, the previous hash moves to the **Earlier this session** list, where it stays until you reload the page.
 - To send another, click **Write another message** (or edit any field). If you try to resend the exact same message to the same recipient, the page asks you to confirm first.
 
 MetaMask won't send data transactions between two addresses in the same wallet, so the recipient must be in a different wallet. To test it yourself, use two wallets or two browser profiles.

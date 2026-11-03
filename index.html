@@ -419,7 +419,7 @@
             </div>
             <div class="notice" id="txStatus" role="status" hidden></div>
             <div class="out" id="sentLogWrap" hidden>
-              <span class="label">Sent this session <span style="color:var(--mist);font-weight:400">(send each hash to its recipient)</span></span>
+              <span class="label">Earlier this session <span style="color:var(--mist);font-weight:400">(send each hash to its recipient)</span></span>
               <ul class="sent-log" id="sentLog"></ul>
             </div>
           </div>
@@ -541,6 +541,7 @@
 
     let provider = null;
     let connectedAccount = null;
+    const sentLog = [];            // messages sent this session: { hash, to, fingerprint, time }
 
     // ===== Helpers =====
     const $ = id => document.getElementById(id);
@@ -610,12 +611,12 @@
     function shortAddr(addr) { const x = toXdc(addr); return x.slice(0, 7) + '…' + x.slice(-4); }
     function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    function setStatus(id, tone, html) {
+    // txHash: for the send status box, the hash it shows (kept out of the "Earlier" list).
+    function setStatus(id, tone, html, txHash) {
       const el = $(id);
-      if (!html) { el.hidden = true; el.innerHTML = ''; return; }
-      el.dataset.tone = tone;
-      el.innerHTML = html;
-      el.hidden = false;
+      if (!html) { el.hidden = true; el.innerHTML = ''; }
+      else { el.dataset.tone = tone; el.innerHTML = html; el.hidden = false; }
+      if (id === 'txStatus') { el.dataset.hash = (html && txHash) || ''; renderSentLog(); }
     }
     function markInvalid(id, invalid) {
       const el = $(id);
@@ -843,19 +844,19 @@
         resp = await provider.getSigner().sendTransaction({ to, value, data: dataHex });
         const hash = escapeHtml(resp.hash);
         busy('sendBtn', true, 'Confirming…');
-        setStatus('txStatus', 'info', '<strong>Sent. Waiting for confirmation…</strong> Don’t send again. Your hash:<br><span class="hash">' + hash + '</span>' + hashActions(hash));
+        setStatus('txStatus', 'info', '<strong>Sent. Waiting for confirmation…</strong> Don’t send again. Your hash:<br><span class="hash">' + hash + '</span>' + hashActions(hash), resp.hash);
         await resp.wait();
         confirmed = true;
         xdcTrack('pqonchain/message-sent');
         addToSentLog(resp.hash, to, fingerprint);
-        setStatus('txStatus', 'ok', '<strong>Message confirmed on chain.</strong> Send this transaction hash to the recipient so they can read it:<br><span class="hash">' + hash + '</span>' + hashActions(hash));
+        setStatus('txStatus', 'ok', '<strong>Message confirmed on chain.</strong> Send this transaction hash to the recipient so they can read it:<br><span class="hash">' + hash + '</span>' + hashActions(hash), resp.hash);
       } catch (error) {
         console.error('Send error:', error);
         if (resp) {
           // The transaction was broadcast; only the confirmation check failed. Don't invite a resend.
           const hash = escapeHtml(resp.hash);
           addToSentLog(resp.hash, to, fingerprint);
-          setStatus('txStatus', 'error', '<strong>Sent, but confirmation couldn’t be checked.</strong> Check this hash on XDCScan before sending again:<br><span class="hash">' + hash + '</span>' + hashActions(hash));
+          setStatus('txStatus', 'error', '<strong>Sent, but confirmation couldn’t be checked.</strong> Check this hash on XDCScan before sending again:<br><span class="hash">' + hash + '</span>' + hashActions(hash), resp.hash);
         } else {
           setStatus('txStatus', 'error', '<strong>Message not sent.</strong> ' + escapeHtml(friendlyError(error)));
         }
@@ -866,20 +867,27 @@
     }
 
     // ===== Sent-message log and double-send protection =====
-    const sentLog = [];
 
     function hashActions(hash) {
       return '<div class="actions"><button type="button" class="btn btn-ghost btn-small" onclick="copyText(\'' + hash + '\', this)">Copy hash</button><a class="btn btn-ghost btn-small" href="' + EXPLORER_TX + hash + '" target="_blank" rel="noopener">View on XDCScan</a></div>';
     }
 
-    // Every hash stays listed until the page is reloaded, so starting another send can't lose it.
+    // Every hash is kept until the page is reloaded, so starting another send can't lose it.
+    // The newest one is shown in the status box; the list shows only the earlier ones,
+    // so no hash appears twice. When the status box is cleared, its hash moves into the list.
     function addToSentLog(rawHash, to, fingerprint) {
-      sentLog.push({ hash: rawHash, fingerprint });
-      const hash = escapeHtml(rawHash);
-      const li = document.createElement('li');
-      li.innerHTML = new Date().toLocaleTimeString() + ' · to <code>' + escapeHtml(shortAddr(to)) + '</code><span class="hash">' + hash + '</span>' + hashActions(hash);
-      $('sentLog').prepend(li);
-      $('sentLogWrap').hidden = false;
+      sentLog.push({ hash: rawHash, to, fingerprint, time: new Date().toLocaleTimeString() });
+      renderSentLog();
+    }
+    function renderSentLog() {
+      const status = $('txStatus');
+      const shown = status.hidden ? null : status.dataset.hash;
+      const earlier = sentLog.filter(s => s.hash !== shown).reverse();
+      $('sentLog').innerHTML = earlier.map(s => {
+        const hash = escapeHtml(s.hash);
+        return '<li>' + escapeHtml(s.time) + ' · to <code>' + escapeHtml(shortAddr(s.to)) + '</code><span class="hash">' + hash + '</span>' + hashActions(hash) + '</li>';
+      }).join('');
+      $('sentLogWrap').hidden = earlier.length === 0;
     }
 
     // After a send, the button stays off until the user deliberately starts another message.
