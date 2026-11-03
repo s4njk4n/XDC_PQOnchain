@@ -199,6 +199,10 @@
     .notice[data-tone="warn"] { border-left: 3px solid var(--flare); }
     .notice .hash { font-family: var(--mono); font-size: 0.8rem; word-break: break-all; }
     .notice .actions { margin-top: 0.6rem; }
+    .sent-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+    .sent-log li { padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 8px; font-size: 0.875rem; color: var(--mist); }
+    .sent-log .hash { display: block; font-family: var(--mono); font-size: 0.8rem; word-break: break-all; color: var(--ink); margin: 0.2rem 0 0.4rem; }
+    .sent-log .actions { gap: 0.4rem; }
 
     .wallet { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem 0.9rem; border: 1px solid var(--line); border-radius: 8px; }
     .wallet-state { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; }
@@ -411,8 +415,13 @@
 
             <div class="actions">
               <button type="button" class="btn btn-primary" id="sendBtn" onclick="sendMessage()">Encrypt and send</button>
+              <button type="button" class="btn btn-ghost" id="newMsgBtn" onclick="startNewMessage()" hidden>Write another message</button>
             </div>
             <div class="notice" id="txStatus" role="status" hidden></div>
+            <div class="out" id="sentLogWrap" hidden>
+              <span class="label">Sent this session <span style="color:var(--mist);font-weight:400">(send each hash to its recipient)</span></span>
+              <ul class="sent-log" id="sentLog"></ul>
+            </div>
           </div>
         </section>
 
@@ -615,7 +624,9 @@
     }
     function busy(btnId, isBusy, label) {
       const b = $(btnId);
-      if (isBusy) { b.dataset.label = b.textContent; b.textContent = label; b.disabled = true; }
+      // Only remember the resting label the first time, so chained busy labels
+      // ("Check MetaMask…" → "Confirming…") restore to the original text.
+      if (isBusy) { if (!b.disabled) b.dataset.label = b.textContent; b.textContent = label; b.disabled = true; }
       else { b.textContent = b.dataset.label || b.textContent; b.disabled = false; }
     }
     function friendlyError(error) {
@@ -804,12 +815,18 @@
       try { value = ethers.utils.parseEther(amount); if (value.isNegative()) throw 0; }
       catch (_) { markInvalid('amount', true); return setStatus('txStatus', 'error', 'Enter an XDC amount of 0 or more.'); }
 
+      // Catch an accidental second send of the same message to the same recipient.
+      const fingerprint = [to.toLowerCase(), pubKeyHex, msg, amount].join('|');
+      const earlier = sentLog.find(s => s.fingerprint === fingerprint);
+      if (earlier && !confirm('You already sent this exact message to this recipient (transaction ' + earlier.hash.slice(0, 10) + '…).\n\nSend it again as a new transaction? This costs gas again.')) return;
+
       if (!window.ethereum) return connectWallet();
       if (!provider || !connectedAccount) {
         await connectWallet();
         if (!connectedAccount) return;
       }
 
+      let resp = null, confirmed = false;
       busy('sendBtn', true, 'Check MetaMask…');
       try {
         await ensureXdcNetwork();
@@ -823,21 +840,74 @@
         const encryptedMsg = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(msg));
         const dataHex = '0x' + arrayToHex(concatArrays([ct, iv, new Uint8Array(encryptedMsg)]));
 
-        const resp = await provider.getSigner().sendTransaction({ to, value, data: dataHex });
+        resp = await provider.getSigner().sendTransaction({ to, value, data: dataHex });
         const hash = escapeHtml(resp.hash);
-        const hashActions = '<div class="actions"><button type="button" class="btn btn-ghost btn-small" onclick="copyText(\'' + hash + '\', this)">Copy hash</button><a class="btn btn-ghost btn-small" href="' + EXPLORER_TX + hash + '" target="_blank" rel="noopener">View on XDCScan</a></div>';
         busy('sendBtn', true, 'Confirming…');
-        setStatus('txStatus', 'info', '<strong>Sent. Waiting for confirmation…</strong><br><span class="hash">' + hash + '</span>' + hashActions);
+        setStatus('txStatus', 'info', '<strong>Sent. Waiting for confirmation…</strong> Don’t send again. Your hash:<br><span class="hash">' + hash + '</span>' + hashActions(hash));
         await resp.wait();
+        confirmed = true;
         xdcTrack('pqonchain/message-sent');
-        setStatus('txStatus', 'ok', '<strong>Message confirmed on chain.</strong> Send this transaction hash to the recipient so they can read it:<br><span class="hash">' + hash + '</span>' + hashActions);
+        addToSentLog(resp.hash, to, fingerprint);
+        setStatus('txStatus', 'ok', '<strong>Message confirmed on chain.</strong> Send this transaction hash to the recipient so they can read it:<br><span class="hash">' + hash + '</span>' + hashActions(hash));
       } catch (error) {
         console.error('Send error:', error);
-        setStatus('txStatus', 'error', '<strong>Message not sent.</strong> ' + escapeHtml(friendlyError(error)));
+        if (resp) {
+          // The transaction was broadcast; only the confirmation check failed. Don't invite a resend.
+          const hash = escapeHtml(resp.hash);
+          addToSentLog(resp.hash, to, fingerprint);
+          setStatus('txStatus', 'error', '<strong>Sent, but confirmation couldn’t be checked.</strong> Check this hash on XDCScan before sending again:<br><span class="hash">' + hash + '</span>' + hashActions(hash));
+        } else {
+          setStatus('txStatus', 'error', '<strong>Message not sent.</strong> ' + escapeHtml(friendlyError(error)));
+        }
       } finally {
         busy('sendBtn', false);
+        if (resp) lockSendButton(confirmed);
       }
     }
+
+    // ===== Sent-message log and double-send protection =====
+    const sentLog = [];
+
+    function hashActions(hash) {
+      return '<div class="actions"><button type="button" class="btn btn-ghost btn-small" onclick="copyText(\'' + hash + '\', this)">Copy hash</button><a class="btn btn-ghost btn-small" href="' + EXPLORER_TX + hash + '" target="_blank" rel="noopener">View on XDCScan</a></div>';
+    }
+
+    // Every hash stays listed until the page is reloaded, so starting another send can't lose it.
+    function addToSentLog(rawHash, to, fingerprint) {
+      sentLog.push({ hash: rawHash, fingerprint });
+      const hash = escapeHtml(rawHash);
+      const li = document.createElement('li');
+      li.innerHTML = new Date().toLocaleTimeString() + ' · to <code>' + escapeHtml(shortAddr(to)) + '</code><span class="hash">' + hash + '</span>' + hashActions(hash);
+      $('sentLog').prepend(li);
+      $('sentLogWrap').hidden = false;
+    }
+
+    // After a send, the button stays off until the user deliberately starts another message.
+    function lockSendButton(confirmed) {
+      const b = $('sendBtn');
+      b.textContent = confirmed ? 'Message sent ✓' : 'Sent, check XDCScan';
+      b.disabled = true;
+      b.dataset.locked = 'true';
+      $('newMsgBtn').hidden = false;
+    }
+    function unlockSendButton() {
+      const b = $('sendBtn');
+      if (b.dataset.locked !== 'true') return;
+      delete b.dataset.locked;
+      b.textContent = 'Encrypt and send';
+      b.dataset.label = 'Encrypt and send';
+      b.disabled = false;
+      $('newMsgBtn').hidden = true;
+    }
+    function startNewMessage() {
+      $('message').value = '';
+      $('amount').value = '0';
+      setStatus('txStatus');
+      unlockSendButton();
+      $('message').focus();
+    }
+    // Changing any send field also counts as starting a new message.
+    ['toAddr', 'pubKey', 'message', 'amount'].forEach(id => $(id).addEventListener('input', unlockSendButton));
 
     function copyText(text, button) {
       const fake = 'copy-tmp';
