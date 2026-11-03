@@ -297,7 +297,7 @@
       <div class="wrap hero-grid">
         <div>
           <h1 id="title">Post-quantum encrypted messages on XDC</h1>
-          <p class="lede">Create a keypair, send a message only the recipient can read, and decrypt messages sent to you. Everything runs in your browser. Your keys and messages never touch a server.</p>
+          <p class="lede">Create your message keys, send a message only the recipient can read, and decrypt messages sent to you. Everything runs in your browser. Your keys and messages never touch a server, and this page never asks for your wallet’s private key or recovery phrase.</p>
           <ul class="facts" aria-label="Key facts">
             <li><span class="kind kind-pq"><span class="nb">ML-KEM-768</span> (NIST FIPS 203)</span></li>
             <li><span class="kind kind-web">AES-256-GCM</span></li>
@@ -317,7 +317,7 @@
             <span class="seg-kem">ML-KEM-768</span><span class="seg-iv">IV</span><span class="seg-msg">Message</span>
           </div>
           <dl class="payload-key">
-            <dt>ML-KEM-768</dt><dd>1,088-byte encapsulated key, opened only by the recipient’s private key</dd>
+            <dt>ML-KEM-768</dt><dd>1,088-byte encapsulated key, opened only by the recipient’s message decryption key</dd>
             <dt>IV</dt><dd>12 random bytes</dd>
             <dt>Message</dt><dd>Your text, encrypted with AES-256-GCM</dd>
           </dl>
@@ -332,41 +332,42 @@
         <section class="group" id="keys" aria-labelledby="keys-title">
           <div class="group-head">
             <span class="step-no" aria-hidden="true">1</span>
-            <h2 id="keys-title">Create your keys</h2>
-            <p>Do this once if you want to receive messages. Share your public key with anyone who wants to message you. You don’t need keys of your own just to send.</p>
+            <h2 id="keys-title">Create your message keys</h2>
+            <p>Do this once if you want to receive messages. Share your message public key with anyone who wants to message you. You don’t need message keys of your own just to send.</p>
+            <p style="margin-top:0.6rem">Message keys are created on this page and only encrypt and decrypt messages. They are <strong>not</strong> your wallet keys and can’t move funds.</p>
           </div>
           <div class="group-body">
             <div class="actions">
-              <button type="button" class="btn btn-primary" id="genBtn" onclick="generateKeypair()">Generate keypair</button>
+              <button type="button" class="btn btn-primary" id="genBtn" onclick="generateKeypair()">Create message keys</button>
             </div>
             <p class="notice" id="keysStatus" role="status" hidden></p>
 
             <div class="out">
               <div class="out-head">
-                <span class="label" id="pk-label">Public key <span class="kind kind-quiet">Share this</span></span>
+                <span class="label" id="pk-label">Message public key <span class="kind kind-quiet">Share this</span></span>
                 <div class="actions">
                   <button type="button" class="btn btn-ghost btn-small" onclick="copyToClipboard('publicKey', this)">Copy</button>
                 </div>
               </div>
-              <div id="publicKey" class="box" aria-labelledby="pk-label" data-empty="Your public key will appear here"></div>
+              <div id="publicKey" class="box" aria-labelledby="pk-label" data-empty="Your message public key will appear here"></div>
             </div>
 
             <div class="out">
               <div class="out-head">
-                <span class="label" id="sk-label">Private key <span class="kind kind-quiet" style="color:var(--flare)">Never share</span></span>
+                <span class="label" id="sk-label">Message decryption key <span class="kind kind-quiet" style="color:var(--flare)">Never share</span></span>
                 <div class="actions">
                   <button type="button" class="btn btn-ghost btn-small" id="revealBtn" onclick="toggleReveal()" aria-pressed="false">Show</button>
                   <button type="button" class="btn btn-ghost btn-small" onclick="copyToClipboard('privateKey', this)">Copy</button>
                 </div>
               </div>
-              <div id="privateKey" class="box masked" aria-labelledby="sk-label" data-empty="Your private key will appear here"></div>
+              <div id="privateKey" class="box masked" aria-labelledby="sk-label" data-empty="Your message decryption key will appear here"></div>
             </div>
 
             <div class="actions" id="keyExtras" hidden>
-              <button type="button" class="btn btn-ghost" onclick="downloadKeys()">Download both keys</button>
+              <button type="button" class="btn btn-ghost" onclick="downloadKeys()">Download both message keys</button>
             </div>
 
-            <p class="notice" data-tone="warn"><strong>Save your private key somewhere safe and offline.</strong> Anyone who has it can read every message sent to your public key. If you lose it, those messages can’t be recovered. Nothing is saved by this page.</p>
+            <p class="notice" data-tone="warn"><strong>Save your message decryption key somewhere safe and offline.</strong> Anyone who has it can read every message sent to your message public key. If you lose it, those messages can’t be recovered. Nothing is saved by this page.</p>
           </div>
         </section>
 
@@ -375,7 +376,7 @@
           <div class="group-head">
             <span class="step-no" aria-hidden="true">2</span>
             <h2 id="send-title">Send a message</h2>
-            <p>Your message is encrypted with the recipient’s public key, then sent as an XDC transaction from MetaMask.</p>
+            <p>Your message is encrypted with the recipient’s message public key, then sent as an XDC transaction from MetaMask.</p>
           </div>
           <div class="group-body">
             <div class="wallet">
@@ -384,14 +385,15 @@
             </div>
 
             <div class="field">
-              <label for="toAddr">Recipient address</label>
+              <label for="toAddr">Recipient wallet address</label>
               <input id="toAddr" class="mono" type="text" placeholder="xdc… or 0x…" autocomplete="off" spellcheck="false" required>
               <p class="hint">Must be an address in a different wallet from the one you’re sending with. MetaMask blocks data transactions between addresses in the same wallet.</p>
             </div>
 
             <div class="field">
-              <label for="pubKey">Recipient’s public key</label>
-              <textarea id="pubKey" class="mono" rows="3" placeholder="Paste the public key they shared with you" spellcheck="false"></textarea>
+              <label for="pubKey">Recipient’s message public key</label>
+              <textarea id="pubKey" class="mono" rows="3" placeholder="PQONCHAIN-PUBLIC-KEY-… (the message public key they shared with you)" spellcheck="false" autocomplete="off"></textarea>
+              <p class="hint">Not their wallet address, and never a private key. It starts with PQONCHAIN-PUBLIC-KEY-, or is 2,368 hex characters for keys made before this was added.</p>
             </div>
 
             <div class="field">
@@ -419,7 +421,7 @@
           <div class="group-head">
             <span class="step-no" aria-hidden="true">3</span>
             <h2 id="read-title">Read a message</h2>
-            <p>Paste the transaction hash the sender gave you and your private key. No wallet connection needed.</p>
+            <p>Paste the transaction hash the sender gave you and your message decryption key. No wallet connection needed.</p>
           </div>
           <div class="group-body">
             <div class="field">
@@ -427,8 +429,9 @@
               <input id="txHashInput" class="mono" type="text" placeholder="0x…" autocomplete="off" spellcheck="false">
             </div>
             <div class="field">
-              <label for="privKey">Your private key</label>
-              <textarea id="privKey" class="mono" rows="3" placeholder="Paste your private key" spellcheck="false" autocomplete="off"></textarea>
+              <label for="privKey">Your message decryption key</label>
+              <textarea id="privKey" class="mono" rows="3" placeholder="PQONCHAIN-DECRYPTION-KEY-… (from step 1 or your saved keys file)" spellcheck="false" autocomplete="off"></textarea>
+              <p class="hint"><strong>Never your wallet’s private key or recovery phrase.</strong> PQOnchain never needs them. Use the message decryption key you created in step 1.</p>
             </div>
             <details class="settings">
               <summary>Network settings</summary>
@@ -470,7 +473,11 @@
           </div>
           <div>
             <h3>The recipient needs the transaction hash</h3>
-            <p>After you send, copy the hash and pass it to the recipient. They paste it into step 3 with their private key.</p>
+            <p>After you send, copy the hash and pass it to the recipient. They paste it into step 3 with their message decryption key.</p>
+          </div>
+          <div>
+            <h3>Message keys aren’t wallet keys</h3>
+            <p>Your message keys are created here and only lock and unlock messages. PQOnchain never asks for your wallet’s private key or recovery phrase. If any page that looks like this one does, close it.</p>
           </div>
           <div>
             <h3>Testing it yourself</h3>
@@ -550,6 +557,46 @@
       if (expectedBytes && hex.length !== expectedBytes * 2) return null;
       return hex.toLowerCase();
     }
+
+    // Message keys are shown with a prefix so they can't be mistaken for wallet keys.
+    // Bare hex (keys made before prefixes were added) is still accepted.
+    const PK_PREFIX = 'PQONCHAIN-PUBLIC-KEY-';
+    const SK_PREFIX = 'PQONCHAIN-DECRYPTION-KEY-';
+    const WALLET_SECRET_WARNING = '<strong>That looks like a wallet private key or recovery phrase, so it’s been cleared.</strong> PQOnchain never needs your wallet’s private key or recovery phrase. Don’t paste them here, or into any website. Nothing was sent anywhere. (If you pasted a transaction hash, it goes in the Transaction hash field.)';
+
+    // A wallet private key is 64 hex characters; a recovery phrase is 12–24 plain words.
+    function looksLikeWalletSecret(value) {
+      const v = (value || '').trim();
+      if (/^(0x)?[0-9a-f]{64}$/i.test(v.replace(/\s+/g, ''))) return true;
+      const words = v.toLowerCase().split(/\s+/).filter(Boolean);
+      return [12, 15, 18, 21, 24].includes(words.length) && words.every(w => /^[a-z]{3,8}$/.test(w));
+    }
+
+    // Returns { hex } or { error: 'wallet' | 'wrong-kind' | 'invalid' }.
+    function parseMessageKey(value, prefix, otherPrefix, expectedBytes) {
+      let v = (value || '').replace(/\s+/g, '');
+      if (looksLikeWalletSecret(value)) return { error: 'wallet' };
+      if (v.toUpperCase().startsWith(otherPrefix)) return { error: 'wrong-kind' };
+      if (v.toUpperCase().startsWith(prefix)) v = v.slice(prefix.length);
+      const hex = cleanHex(v, expectedBytes);
+      if (hex) return { hex };
+      // A bare key of the other kind's length was pasted into the wrong field.
+      const otherBytes = expectedBytes === PK_BYTES ? SK_BYTES : PK_BYTES;
+      if (cleanHex(v, otherBytes)) return { error: 'wrong-kind' };
+      return { error: 'invalid' };
+    }
+
+    // Clear a field as soon as a wallet secret is pasted into it, before anything else happens.
+    function guardAgainstWalletSecrets(fieldId, statusId) {
+      $(fieldId).addEventListener('input', () => {
+        const el = $(fieldId);
+        if (!looksLikeWalletSecret(el.value)) return;
+        el.value = '';
+        markInvalid(fieldId, true);
+        setStatus(statusId, 'error', WALLET_SECRET_WARNING);
+      });
+    }
+
     function toXdc(addr) { return addr ? 'xdc' + addr.slice(2) : addr; }
     function shortAddr(addr) { const x = toXdc(addr); return x.slice(0, 7) + '…' + x.slice(-4); }
     function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -610,19 +657,19 @@
 
     // ===== Step 1: keys =====
     async function generateKeypair() {
-      if ($('publicKey').textContent && !confirm('Replace your current keys? Make sure you’ve saved the private key first. Messages sent to the old public key can only be read with the old private key.')) return;
+      if ($('publicKey').textContent && !confirm('Replace your current message keys? Make sure you’ve saved the message decryption key first. Messages sent to the old message public key can only be read with the old decryption key.')) return;
       busy('genBtn', true, 'Generating…');
       setStatus('keysStatus');
       try {
         const MlKemClass = await getMlKemClass();
         const instance = new MlKemClass();
         const [pk, sk] = await instance.generateKeyPair();
-        $('publicKey').textContent = arrayToHex(pk);
-        $('privateKey').textContent = arrayToHex(sk);
+        $('publicKey').textContent = PK_PREFIX + arrayToHex(pk);
+        $('privateKey').textContent = SK_PREFIX + arrayToHex(sk);
         $('keyExtras').hidden = false;
-        $('genBtn').dataset.label = 'Generate new keypair';
+        $('genBtn').dataset.label = 'Create new message keys';
         xdcTrack('pqonchain/keys-created');
-        setStatus('keysStatus', 'ok', 'Keys created. Save your private key now: download both keys or copy them somewhere safe.');
+        setStatus('keysStatus', 'ok', 'Message keys created. Save your message decryption key now: download both keys or copy them somewhere safe.');
       } catch (error) {
         console.error('Keypair error:', error);
         setStatus('keysStatus', 'error', '<strong>Couldn’t create keys.</strong> ' + escapeHtml(friendlyError(error)));
@@ -642,20 +689,23 @@
       const pk = $('publicKey').textContent, sk = $('privateKey').textContent;
       if (!pk || !sk) return;
       const text = [
-        'XDC PQOnchain keys (ML-KEM-768)',
+        'XDC PQOnchain message keys (ML-KEM-768)',
         'Created: ' + new Date().toISOString(),
         '',
-        'PUBLIC KEY (share this with people who want to message you):',
+        'These are NOT wallet keys. They only encrypt and decrypt PQOnchain messages and cannot move funds.',
+        'PQOnchain never asks for your wallet private key or recovery phrase.',
+        '',
+        'MESSAGE PUBLIC KEY (share this with people who want to message you):',
         pk,
         '',
-        'PRIVATE KEY (keep secret, store offline. Anyone with it can read your messages):',
+        'MESSAGE DECRYPTION KEY (keep secret, store offline. Anyone with it can read your messages):',
         sk,
         ''
       ].join('\n');
       const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
       const a = document.createElement('a');
       xdcTrack('pqonchain/keys-downloaded');
-      a.href = url; a.download = 'xdc-pqonchain-keys.txt';
+      a.href = url; a.download = 'xdc-pqonchain-message-keys.txt';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
@@ -731,13 +781,19 @@
       if (/^xdc/i.test(to)) to = '0x' + to.slice(3);
       if (!to || !ethers.utils.isAddress(to)) {
         markInvalid('toAddr', true);
-        return setStatus('txStatus', 'error', 'Enter a valid recipient address, starting with xdc or 0x.');
+        return setStatus('txStatus', 'error', 'Enter a valid recipient wallet address, starting with xdc or 0x.');
       }
-      const pubKeyHex = cleanHex($('pubKey').value, PK_BYTES);
-      if (!pubKeyHex) {
+      const pub = parseMessageKey($('pubKey').value, PK_PREFIX, SK_PREFIX, PK_BYTES);
+      if (pub.error) {
+        if (pub.error === 'wallet') $('pubKey').value = '';
         markInvalid('pubKey', true);
-        return setStatus('txStatus', 'error', 'That doesn’t look like a PQOnchain public key. It should be ' + (PK_BYTES * 2).toLocaleString() + ' hex characters. Check you copied all of it, and that it’s the public key, not the private one.');
+        return setStatus('txStatus', 'error', {
+          wallet: WALLET_SECRET_WARNING,
+          'wrong-kind': '<strong>That’s a message decryption key, not a public key.</strong> Decryption keys must stay secret. Ask the recipient for their message public key (it starts with PQONCHAIN-PUBLIC-KEY-). If that decryption key is yours, you may want to create new message keys.',
+          invalid: 'That doesn’t look like a PQOnchain message public key. It should start with PQONCHAIN-PUBLIC-KEY- (or be ' + (PK_BYTES * 2).toLocaleString() + ' hex characters for older keys). Check you copied all of it.'
+        }[pub.error]);
       }
+      const pubKeyHex = pub.hex;
       const msg = $('message').value;
       if (!msg.trim()) {
         markInvalid('message', true);
@@ -802,11 +858,17 @@
         markInvalid('txHashInput', true);
         return setStatus('readStatus', 'error', 'Enter a transaction hash: 0x followed by 64 hex characters.');
       }
-      const privKeyHex = cleanHex($('privKey').value, SK_BYTES);
-      if (!privKeyHex) {
+      const sec = parseMessageKey($('privKey').value, SK_PREFIX, PK_PREFIX, SK_BYTES);
+      if (sec.error) {
+        if (sec.error === 'wallet') $('privKey').value = '';
         markInvalid('privKey', true);
-        return setStatus('readStatus', 'error', 'That doesn’t look like a PQOnchain private key. It should be ' + (SK_BYTES * 2).toLocaleString() + ' hex characters. Check you pasted the private key, not the public one.');
+        return setStatus('readStatus', 'error', {
+          wallet: WALLET_SECRET_WARNING,
+          'wrong-kind': 'That’s a message public key. To read a message, paste your message decryption key instead (it starts with PQONCHAIN-DECRYPTION-KEY-).',
+          invalid: 'That doesn’t look like a PQOnchain message decryption key. It should start with PQONCHAIN-DECRYPTION-KEY- (or be ' + (SK_BYTES * 2).toLocaleString() + ' hex characters for older keys). Check you copied all of it.'
+        }[sec.error]);
       }
+      const privKeyHex = sec.hex;
       const rpc = $('rpcDecrypt').value.trim();
 
       busy('decryptBtn', true, 'Decrypting…');
@@ -835,7 +897,7 @@
         try {
           decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encMsg);
         } catch (_) {
-          throw new Error('This message wasn’t encrypted for this private key. Check you’re using the private key that matches the public key you shared.');
+          throw new Error('This message wasn’t encrypted for this decryption key. Check you’re using the message decryption key that matches the message public key you shared.');
         }
         $('decryptedMessage').textContent = new TextDecoder().decode(decrypted);
         xdcTrack('pqonchain/message-decrypted');
@@ -849,6 +911,9 @@
     }
 
     // ===== Init =====
+    guardAgainstWalletSecrets('privKey', 'readStatus');
+    guardAgainstWalletSecrets('pubKey', 'txStatus');
+
     window.addEventListener('load', () => {
       if (!window.ethereum) return;
       window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {

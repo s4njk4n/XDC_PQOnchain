@@ -18,16 +18,27 @@ Data written to a public blockchain stays there forever. "Harvest now, decrypt l
 
 ## How to use it
 
-### 1. Create your keys (to receive messages)
-- Click **Generate keypair**. The keys are created in your browser.
-- **Share your public key** with anyone who wants to message you.
-- **Save your private key** offline: click **Download both keys**, or copy it. It's hidden until you click **Show**. Anyone with it can read your messages, and if you lose it they can't be recovered.
+> **PQOnchain never asks for your wallet's private key or recovery phrase.** It uses its own *message keys*, which are created on the page, only encrypt and decrypt messages, and can't move funds. If the page sees something that looks like a wallet private key or recovery phrase in a key field, it clears it and warns you.
 
-You don't need keys of your own just to send.
+| Term on the page | What it is |
+|---|---|
+| **Recipient wallet address** | An ordinary XDC address (`xdc…` or `0x…`). Says where the transaction goes. |
+| **Message public key** | Starts with `PQONCHAIN-PUBLIC-KEY-`. Safe to share. Senders use it to encrypt messages to you. |
+| **Message decryption key** | Starts with `PQONCHAIN-DECRYPTION-KEY-`. Keep it secret. You use it to read messages sent to you. (Technically, the ML-KEM-768 private key.) |
+| **Wallet private key / recovery phrase** | Controls your funds. **Never needed here.** |
+
+Keys made before the prefixes were added (bare hex) still work.
+
+### 1. Create your message keys (to receive messages)
+- Click **Create message keys**. The keys are created in your browser.
+- **Share your message public key** with anyone who wants to message you.
+- **Save your message decryption key** offline: click **Download both message keys**, or copy it. It's hidden until you click **Show**. Anyone with it can read your messages, and if you lose it they can't be recovered.
+
+You don't need message keys of your own just to send.
 
 ### 2. Send a message
 - **Connect MetaMask.** The page switches it to the XDC Network, adding the network if needed.
-- Enter the **recipient address** (xdc… or 0x…) and paste their **public key**.
+- Enter the **recipient wallet address** (xdc… or 0x…) and paste their **message public key**.
 - Write your message. Optionally, send some XDC with it.
 - Click **Encrypt and send** and confirm in MetaMask.
 - When it's confirmed, **copy the transaction hash and send it to the recipient**. They need it to read the message. There's also a link to view it on XDCScan.
@@ -35,7 +46,7 @@ You don't need keys of your own just to send.
 MetaMask won't send data transactions between two addresses in the same wallet, so the recipient must be in a different wallet. To test it yourself, use two wallets or two browser profiles.
 
 ### 3. Read a message
-- Paste the **transaction hash** and **your private key**.
+- Paste the **transaction hash** and **your message decryption key**.
 - Click **Decrypt message**. No wallet connection is needed.
 
 ## What goes on chain
@@ -44,7 +55,7 @@ Each message is stored in the data field of an ordinary XDC transaction, in this
 
 | Part | Size | What it is |
 |---|---|---|
-| ML-KEM-768 ciphertext | 1,088 bytes | The encapsulated key, which only the recipient's private key can open |
+| ML-KEM-768 ciphertext | 1,088 bytes | The encapsulated key, which only the recipient's message decryption key can open |
 | IV | 12 bytes | Random value for AES-GCM |
 | Encrypted message | your message + 16 bytes | Your text, encrypted with AES-256-GCM |
 
